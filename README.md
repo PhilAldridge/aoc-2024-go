@@ -1,6 +1,8 @@
-# 🎄 Advent of Code 2023 🎄
+# 🎄 Advent of Code 2024 🎄
 
-Working through problems for [Advent of Code 2023](https://adventofcode.com/2023).
+Working through problems for [Advent of Code 2024](https://adventofcode.com/2024).
+
+Fork of template repo: github.com/kylehoehns/aoc-2023-go/ 
 
 Using [Go](https://go.dev/)
 
