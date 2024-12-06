@@ -28,6 +28,10 @@ Run the following to run the given puzzle input for the day.
 ```shell
 go run ./puzzles/day00/main.go
 ```
+or
+```shell
+./run-day.ps1 00
+```
 
 ## Template
 
