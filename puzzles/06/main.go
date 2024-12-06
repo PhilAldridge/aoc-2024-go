@@ -18,7 +18,7 @@ func main() {
 
 func part1(name string) int {
 	lines := files.ReadLines(name)
-	currentLocation,direction := getStart(lines)
+	currentLocation, direction := getStart(lines)
 	locationsVisited := [][2]int{currentLocation}
 	for {
 		//x,y in front of guard
@@ -29,12 +29,12 @@ func part1(name string) int {
 			break
 		}
 		switch lines[newY][newX] {
-			case '#':
-				//obstacle - turn right - directions in getDirectionVector are in clockwise order
-				direction = (direction + 1) % 4
-			default:
-				//no obstacle - move forward
-				currentLocation = [2]int{newY, newX}
+		case '#':
+			//obstacle - turn right - directions in getDirectionVector are in clockwise order
+			direction = (direction + 1) % 4
+		default:
+			//no obstacle - move forward
+			currentLocation = [2]int{newY, newX}
 		}
 		if !slices.Contains(locationsVisited, currentLocation) {
 			locationsVisited = append(locationsVisited, currentLocation)
@@ -43,12 +43,17 @@ func part1(name string) int {
 	return len(locationsVisited)
 }
 
+type safeList struct {
+	mu   sync.Mutex
+	list [][2]int
+}
+
 func part2(name string) int {
 	lines := files.ReadLines(name)
-	currentLocation,direction := getStart(lines)
-	obstaclesAdded := [][2]int{}
+	currentLocation, direction := getStart(lines)
+	obstaclesAdded := safeList{}
 	locationsVisited := [][2]int{currentLocation}
-	wg:= &sync.WaitGroup{}
+	wg := &sync.WaitGroup{}
 	for {
 		//x,y in front of guard
 		newY := currentLocation[0] + getDirectionVector(direction)[0]
@@ -58,29 +63,29 @@ func part2(name string) int {
 			break
 		}
 		switch lines[newY][newX] {
-			case '#':
-				//obstacle - turn right - directions in getDirectionVector are in clockwise order
-				direction = (direction + 1) % 4
-			default:
-				//no obstacle - check if putting an obstacle in front creates a loop
-				//only check if obstacle in given position has not already been tried
-				//only check if obstacle not in path so far (as this would cause the guard to not get into this location at all)
-				//then move forward
-				inFront:= [2]int{newY,newX}
-				if !slices.Contains(obstaclesAdded,inFront) && 
-					!slices.Contains(locationsVisited,inFront) {
-						wg.Add(1)
-					 	go checkLoop(lines,currentLocation,direction,inFront,&obstaclesAdded, wg)
-				}
-				currentLocation = [2]int{newY, newX}
-					
-				if !slices.Contains(locationsVisited, currentLocation) {
-					locationsVisited = append(locationsVisited, currentLocation)
-				}
+		case '#':
+			//obstacle - turn right - directions in getDirectionVector are in clockwise order
+			direction = (direction + 1) % 4
+		default:
+			//no obstacle - check if putting an obstacle in front creates a loop
+			//only check if obstacle not in path so far (as this would cause the guard to not get into this location at all)
+			//then move forward
+			inFront := [2]int{newY, newX}
+			if !slices.Contains(locationsVisited, inFront) {
+				//go routine not necessary. Without this, ran in 3s.
+				//added only as practice. New time 0.5s
+				wg.Add(1)
+				go checkLoop(lines, currentLocation, direction, inFront, &obstaclesAdded, wg)
+			}
+			currentLocation = [2]int{newY, newX}
+
+			if !slices.Contains(locationsVisited, currentLocation) {
+				locationsVisited = append(locationsVisited, currentLocation)
+			}
 		}
 	}
 	wg.Wait()
-	return len(removeDuplicates(obstaclesAdded))
+	return len(obstaclesAdded.list)
 }
 
 func getStart(lines []string) ([2]int, int) {
@@ -89,7 +94,7 @@ func getStart(lines []string) ([2]int, int) {
 			if char == '.' || char == '#' {
 				continue
 			}
-			direction:= 0
+			direction := 0
 			switch char {
 			case '>':
 				direction = 3
@@ -100,7 +105,7 @@ func getStart(lines []string) ([2]int, int) {
 			case '^':
 				direction = 2
 			}
-			return [2]int{i,j},direction
+			return [2]int{i, j}, direction
 		}
 	}
 	panic("start not found")
@@ -109,18 +114,18 @@ func getStart(lines []string) ([2]int, int) {
 func getDirectionVector(directionInt int) [2]int {
 	directions := [4][2]int{
 		//clockwise, so that adding 1 to directionInt = turning right
-		{1, 0}, //down
+		{1, 0},  //down
 		{0, -1}, //left
 		{-1, 0}, //up
-		{0, 1}, //right
+		{0, 1},  //right
 	}
 	return directions[directionInt]
 }
 
-func checkLoop(lines []string, currentLocation [2]int, direction int, obstacleAdded [2]int, obstaclesAdded *[][2]int, wg *sync.WaitGroup) {
+func checkLoop(lines []string, currentLocation [2]int, direction int, obstacleAdded [2]int, obstaclesAdded *safeList, wg *sync.WaitGroup) {
 	defer wg.Done()
 	//list of all locations visited in the loop check and which direction they were facing
-	visited := [][3]int{{currentLocation[0],currentLocation[1],direction}}
+	visited := [][3]int{{currentLocation[0], currentLocation[1], direction}}
 	for {
 		//x,y in front of guard
 		newY := currentLocation[0] + getDirectionVector(direction)[0]
@@ -129,12 +134,14 @@ func checkLoop(lines []string, currentLocation [2]int, direction int, obstacleAd
 			//out of bounds means the guard escapes - no loop
 			return
 		}
-		if slices.Contains(visited, [3]int{newY, newX,direction}) {
+		if slices.Contains(visited, [3]int{newY, newX, direction}) {
 			//we have got to the same place facing the same direction as already visited - loop
-			*obstaclesAdded = append(*obstaclesAdded, [2]int{newY,newX})
+			obstaclesAdded.mu.Lock()
+			defer obstaclesAdded.mu.Unlock()
+			obstaclesAdded.list = append(obstaclesAdded.list, [2]int{newY, newX})
 			return
 		}
-		visited = append(visited, [3]int{currentLocation[0],currentLocation[1],direction})
+		visited = append(visited, [3]int{currentLocation[0], currentLocation[1], direction})
 		if obstacleAdded[0] == newY && obstacleAdded[1] == newX || lines[newY][newX] == '#' {
 			//Old obstacle or addedobstacle in front = turn right
 			direction = (direction + 1) % 4
@@ -142,15 +149,6 @@ func checkLoop(lines []string, currentLocation [2]int, direction int, obstacleAd
 			//No obstacle = move forward
 			currentLocation = [2]int{newY, newX}
 		}
-		
+
 	}
-}
-func removeDuplicates(obsList [][2]int) [][2]int {
-    list := [][2]int{}
-    for _, item := range obsList {
-        if !slices.Contains(list, item) {
-            list = append(list, item)
-        }
-    }
-    return list
 }
