@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -31,7 +32,15 @@ func part1(name string) int {
 }
 
 func part2(name string) int {
-	return 0
+	var total atomic.Uint64
+	wg := &sync.WaitGroup{} 
+	lines:= files.ReadLines(name)
+	for _,line:=range lines{
+		wg.Add(1)
+		go testLine2(line, &total,wg)
+	}
+	wg.Wait()
+	return int(total.Load())
 }
 
 func testLine(line string, total *atomic.Uint64, wg *sync.WaitGroup) {
@@ -39,9 +48,13 @@ func testLine(line string, total *atomic.Uint64, wg *sync.WaitGroup) {
 	split1:= strings.Split(line,": ")
 	testValue := ints.FromString(split1[0])
 	nums:= ints.FromStringSlice(strings.Split(split1[1]," "))
+	//1<<(len(nums)-1) is 2^number of operator spaces
+	//number of combinations you need to try
 	for i:=0; i< (1<<(len(nums)-1)); i++ {
 		base:= nums[0]
 		for j:=1; j<len(nums);j++ {
+			//i>>(j-1))&1 == 1 is true if the jth digit of i in binary is 1
+			//this goes through each combination
 			if (i>>(j-1))&1 == 1 {
 				base += nums[j]
 			} else {
@@ -56,4 +69,48 @@ func testLine(line string, total *atomic.Uint64, wg *sync.WaitGroup) {
 			return
 		}
 	}
+}
+
+func testLine2(line string, total *atomic.Uint64, wg *sync.WaitGroup) {
+	defer wg.Done()
+	split1:= strings.Split(line,": ")
+	testValue := ints.FromString(split1[0])
+	nums:= ints.FromStringSlice(strings.Split(split1[1]," "))
+	//same as part 1 but not 3^number of operators
+	for i:=0; i< pow(3,len(nums)-1); i++ {
+		base:= nums[0]
+		for j:=1; j<len(nums);j++ {
+			switch i/pow(3,j-1)%3  {
+				case 0:
+					base += nums[j]
+				case 1:
+					base *= nums[j]
+				case 2:
+					base = base*pow(10,countDigits(nums[j])) + nums[j]
+			}
+			if base > testValue {
+				break
+			}
+		}
+		if base == testValue {
+			total.Add(uint64(testValue))
+			return
+		}
+	}
+}
+
+func pow (base int, exp int) int {
+	res:=1
+	for exp>0 {
+		res *= base
+		exp--
+	}
+	return res
+}
+
+func countDigits(num int) int {
+    if num == 0 {
+        return 1 // Special case for 0, which has 1 digit
+    }
+    return int(math.Log10(float64(num))) + 1
 }
