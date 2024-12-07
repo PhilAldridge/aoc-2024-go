@@ -68,7 +68,6 @@ func part2(name string) int {
 			direction = (direction + 1) % 4
 		default:
 			//no obstacle - check if putting an obstacle in front creates a loop
-			//only check if obstacle not in path so far (as this would cause the guard to not get into this location at all)
 			//then move forward
 			inFront := [2]int{newY, newX}
 			if !slices.Contains(locationsVisited, inFront) {
