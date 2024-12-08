@@ -16,13 +16,14 @@ func main() {
 
 func part1(name string) int {
 	antennaMap,iLen,jLen := getAntennaMap(name)
-	newAntennaMap := getNewAntennaMap(antennaMap,iLen,jLen)
+	newAntennaMap := getNewAntennaMapPart1(antennaMap,iLen,jLen)
 	return len(newAntennaMap)
 }
 
 func part2(name string) int {
 	antennaMap, iLen, jLen := getAntennaMap(name)
-	return 0
+	newAntennaMap := getNewAntennaMapPart2(antennaMap,iLen,jLen)
+	return len(newAntennaMap)
 }
 
 func getAntennaMap(name string) (map[rune][][2]int,int,int) {
@@ -38,7 +39,7 @@ func getAntennaMap(name string) (map[rune][][2]int,int,int) {
 	return mapping, len(lines),len(lines[0])
 }
 
-func getNewAntennaMap(oldMap map[rune][][2]int, iLen int, jLen int) map[[2]int]int {
+func getNewAntennaMapPart1(oldMap map[rune][][2]int, iLen int, jLen int) map[[2]int]int {
 	newMap := make(map[[2]int]int)
 	for _,antennaList:= range oldMap {
 		for i,antenna1:= range antennaList {
@@ -59,6 +60,50 @@ func getNewAntennaMap(oldMap map[rune][][2]int, iLen int, jLen int) map[[2]int]i
 	return newMap
 }
 
+func getNewAntennaMapPart2(oldMap map[rune][][2]int, iLen int, jLen int) map[[2]int]int {
+	newMap := make(map[[2]int]int)
+	for _,antennaList:= range oldMap {
+		for i,antenna1:= range antennaList {
+			newMap[antenna1] = newMap[antenna1] + 1
+			for j,antenna2:= range antennaList {
+				if i==j {
+					continue
+				}
+				movementVector:= getMovementVector(antenna1,antenna2)
+				newPos:= antenna1
+				for {
+					newPos = [2]int{newPos[0]+movementVector[0],newPos[1]+movementVector[1]}
+					if newPos[0] == antenna1[0] && newPos[1] == antenna1[1] {
+						continue
+					}
+					if newPos[0] == antenna2[0] && newPos[1] == antenna2[1] {
+						continue
+					}
+					if !inBounds(newPos,iLen,jLen) {
+						break
+					}
+					newMap[newPos] = newMap[newPos]+1
+				}
+				newPos= antenna1
+				for {
+					newPos = [2]int{newPos[0]-movementVector[0],newPos[1]-movementVector[1]}
+					if newPos[0] == antenna1[0] && newPos[1] == antenna1[1] {
+						continue
+					}
+					if newPos[0] == antenna2[0] && newPos[1] == antenna2[1] {
+						continue
+					}
+					if !inBounds(newPos,iLen,jLen) {
+						break
+					}
+					newMap[newPos] = newMap[newPos]+1
+				}
+			}
+		}
+	} 
+	return newMap
+}
+
 func getAntiPos(antenna1 [2]int, antenna2 [2]int) ([2]int,[2]int) {
 	firstAntiPos := [2]int{2*antenna1[0]-antenna2[0],2*antenna1[1]-antenna2[1]}
 	
@@ -72,4 +117,26 @@ func inBounds (pos [2]int, iLen int, jLen int) bool {
 		return false
 	}
 	return true
+}
+
+func GCD(a, b int) int {
+	if a< 0 {
+		a *= -1
+	}
+	if b<0 {
+		b *= -1
+	}
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
+}
+
+func getMovementVector(a1 [2]int, a2 [2]int) [2]int {
+	iVec := a1[0]-a2[0]
+	jVec := a1[1]-a2[1]
+	gcd:= GCD(iVec,jVec)
+	return [2]int{iVec/gcd,jVec/gcd}
 }
