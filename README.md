@@ -65,3 +65,6 @@ Part 2: 800.537ms
 ### Day 7
 Part 1: 17.2347ms,
 Part 2: 244.6467ms
+### Day 8
+Part 1: 22.2637ms
+Part 2: 627.3µs
