@@ -25,7 +25,7 @@ func part1(name string) int {
 	lines:= files.ReadLines(name)
 	for _,line:=range lines{
 		wg.Add(1)
-		go testLine(line, &total,wg)
+		go testLine(line, &total,wg,false)
 	}
 	wg.Wait()
 	return int(total.Load())
@@ -37,66 +37,36 @@ func part2(name string) int {
 	lines:= files.ReadLines(name)
 	for _,line:=range lines{
 		wg.Add(1)
-		go testLine2(line, &total,wg)
+		go testLine(line, &total,wg,true)
 	}
 	wg.Wait()
 	return int(total.Load())
 }
 
-func testLine(line string, total *atomic.Uint64, wg *sync.WaitGroup) {
+func testLine(line string, total *atomic.Uint64, wg *sync.WaitGroup,incConcat bool) {
 	defer wg.Done()
 	split1:= strings.Split(line,": ")
 	testValue := ints.FromString(split1[0])
 	nums:= ints.FromStringSlice(strings.Split(split1[1]," "))
-	//1<<(len(nums)-1) is 2^number of operator spaces
-	//number of combinations you need to try
-	for i:=0; i< (1<<(len(nums)-1)); i++ {
-		base:= nums[0]
-		for j:=1; j<len(nums);j++ {
-			//i>>(j-1))&1 == 1 is true if the jth digit of i in binary is 1
-			//this goes through each combination
-			if (i>>(j-1))&1 == 1 {
-				base += nums[j]
-			} else {
-				base *= nums[j]
-			}
-			if base > testValue {
-				break
-			}
-		}
-		if base == testValue {
-			total.Add(uint64(testValue))
-			return
-		}
+	if checkOps(testValue,nums[0],nums[1:],incConcat) {
+		total.Add(uint64(testValue))
 	}
+} 
+
+func checkOps(testValue int, currentValue int, nums []int, incConcat bool) bool {
+	if currentValue > testValue {
+		return false
+	}
+	if len(nums) == 0 {
+		return testValue == currentValue
+	}
+	return checkOps(testValue,currentValue*nums[0], nums[1:],incConcat) ||
+		checkOps(testValue, currentValue+nums[0],nums[1:],incConcat) ||
+		(incConcat && checkOps(testValue, concat(currentValue,nums[0]),nums[1:],incConcat))
 }
 
-func testLine2(line string, total *atomic.Uint64, wg *sync.WaitGroup) {
-	defer wg.Done()
-	split1:= strings.Split(line,": ")
-	testValue := ints.FromString(split1[0])
-	nums:= ints.FromStringSlice(strings.Split(split1[1]," "))
-	//same as part 1 but not 3^number of operators
-	for i:=0; i< pow(3,len(nums)-1); i++ {
-		base:= nums[0]
-		for j:=1; j<len(nums);j++ {
-			switch i/pow(3,j-1)%3  {
-				case 0:
-					base += nums[j]
-				case 1:
-					base *= nums[j]
-				case 2:
-					base = base*pow(10,countDigits(nums[j])) + nums[j]
-			}
-			if base > testValue {
-				break
-			}
-		}
-		if base == testValue {
-			total.Add(uint64(testValue))
-			return
-		}
-	}
+func concat(v1 int, v2 int) int {
+	return v1*pow(10,countDigits(v2)) + v2
 }
 
 func pow (base int, exp int) int {

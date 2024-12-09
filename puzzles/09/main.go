@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
 	"github.com/kylehoehns/aoc-2023-go/pkg/files"
 	"github.com/kylehoehns/aoc-2023-go/pkg/ints"
 )
