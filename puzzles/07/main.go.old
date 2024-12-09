@@ -1,3 +1,5 @@
+//first solution. Rewritten as a recursive function for readability/speed
+
 package main
 
 import (

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/kylehoehns/aoc-2023-go/pkg/files"
+	"github.com/kylehoehns/aoc-2023-go/pkg/ints"
 )
 
 func main() {
@@ -119,24 +120,9 @@ func inBounds (pos [2]int, iLen int, jLen int) bool {
 	return true
 }
 
-func GCD(a, b int) int {
-	if a< 0 {
-		a *= -1
-	}
-	if b<0 {
-		b *= -1
-	}
-	for b != 0 {
-		t := b
-		b = a % b
-		a = t
-	}
-	return a
-}
-
 func getMovementVector(a1 [2]int, a2 [2]int) [2]int {
 	iVec := a1[0]-a2[0]
 	jVec := a1[1]-a2[1]
-	gcd:= GCD(iVec,jVec)
+	gcd:= ints.GCD(iVec,jVec)
 	return [2]int{iVec/gcd,jVec/gcd}
 }

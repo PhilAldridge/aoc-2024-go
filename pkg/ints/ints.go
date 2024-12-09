@@ -1,6 +1,9 @@
 package ints
 
-import "strconv"
+import (
+	"math"
+	"strconv"
+)
 
 func Sum(numbers []int) int {
 	total := 0
@@ -51,4 +54,35 @@ func AllSame(numbers []int) bool {
 		}
 	}
 	return true
+}
+
+func Pow (base int, exp int) int {
+	res:=1
+	for exp>0 {
+		res *= base
+		exp--
+	}
+	return res
+}
+
+func CountDigits(num int) int {
+    if num == 0 {
+        return 1 // Special case for 0, which has 1 digit
+    }
+    return int(math.Log10(float64(num))) + 1
+}
+
+func GCD(a, b int) int {
+	if a< 0 {
+		a *= -1
+	}
+	if b<0 {
+		b *= -1
+	}
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
 }

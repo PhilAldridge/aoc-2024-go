@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -62,25 +61,11 @@ func checkOps(testValue int, currentValue int, nums []int, incConcat bool) bool 
 	}
 	return checkOps(testValue,currentValue*nums[0], nums[1:],incConcat) ||
 		checkOps(testValue, currentValue+nums[0],nums[1:],incConcat) ||
-		(incConcat && checkOps(testValue, concat(currentValue,nums[0]),nums[1:],incConcat))
+		(incConcat && checkOps(testValue, concatInts(currentValue,nums[0]),nums[1:],incConcat))
 }
 
-func concat(v1 int, v2 int) int {
-	return v1*pow(10,countDigits(v2)) + v2
+func concatInts(v1 int, v2 int) int {
+	return v1*ints.Pow(10,ints.CountDigits(v2)) + v2
 }
 
-func pow (base int, exp int) int {
-	res:=1
-	for exp>0 {
-		res *= base
-		exp--
-	}
-	return res
-}
 
-func countDigits(num int) int {
-    if num == 0 {
-        return 1 // Special case for 0, which has 1 digit
-    }
-    return int(math.Log10(float64(num))) + 1
-}
