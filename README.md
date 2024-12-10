@@ -72,8 +72,8 @@ Part 2: 627.3µs
 Part 1: 20.6891ms
 Part 2: 262.3941ms
 ### Day 10
-Part 1: 
-Part 2: 
+Part 1: 531.7µs
+Part 2: 542.2µs
 ### Day 11
 Part 1: 
 Part 2: 
