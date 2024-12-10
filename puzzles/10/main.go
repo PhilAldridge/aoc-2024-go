@@ -19,34 +19,26 @@ func main() {
 
 func part1(name string) int {
 	mapping := getMapping(name)
-	scoreMap := createScoreMap(len(mapping), len(mapping[0]))
+	reachableSummitMap := createReachableSummitMap(len(mapping), len(mapping[0]))
 	total := 0
+	//Start at peaks and work down
 	for check := 9; check >= 0; check-- {
+		//At each height add the reachable peaks from the adjacent squares that are one above the current height
 		for i, line := range mapping {
 			for j, val := range line {
 				if val != check {
 					continue
 				}
 				if check == 9 {
-					scoreMap[i][j] = [][2]int{{i, j}}
+					//summits can only reach themselves
+					reachableSummitMap[i][j] = [][2]int{{i, j}}
 					continue
 				}
-				newScore := [][2]int{}
-				if i > 0 && mapping[i-1][j] == check+1 {
-					newScore = addUnique(newScore, scoreMap[i-1][j])
-				}
-				if i < len(mapping)-1 && mapping[i+1][j] == check+1 {
-					newScore = addUnique(newScore, scoreMap[i+1][j])
-				}
-				if j > 0 && mapping[i][j-1] == check+1 {
-					newScore = addUnique(newScore, scoreMap[i][j-1])
-				}
-				if j < len(mapping[0])-1 && mapping[i][j+1] == check+1 {
-					newScore = addUnique(newScore, scoreMap[i][j+1])
-				}
-				scoreMap[i][j] = newScore
+				//list of unique summits reachable at this location
+				reachableSummitMap[i][j] = getReachableSummits(mapping,reachableSummitMap,check,i,j)
 				if check == 0 {
-					total += len(newScore)
+					//at the base, add number of reachable summits to total
+					total += len(reachableSummitMap[i][j])
 				}
 			}
 		}
@@ -56,34 +48,26 @@ func part1(name string) int {
 
 func part2(name string) int {
 	mapping := getMapping(name)
-	scoreMap := createScoreMap2(len(mapping), len(mapping[0]))
+	scoreMap := createScoreMap(len(mapping), len(mapping[0]))
 	total := 0
+	//Start at peaks and work down
 	for check := 9; check >= 0; check-- {
+		//At each height add the number of paths to peaks from the adjacent squares that are one above the current height
 		for i, line := range mapping {
 			for j, val := range line {
 				if val != check {
 					continue
 				}
 				if check == 9 {
+					//start at summit, with one way to get to it
 					scoreMap[i][j] = 1
 					continue
 				}
-				newScore := 0
-				if i > 0 && mapping[i-1][j] == check+1 {
-					newScore += scoreMap[i-1][j]
-				}
-				if i < len(mapping)-1 && mapping[i+1][j] == check+1 {
-					newScore += scoreMap[i+1][j]
-				}
-				if j > 0 && mapping[i][j-1] == check+1 {
-					newScore += scoreMap[i][j-1]
-				}
-				if j < len(mapping[0])-1 && mapping[i][j+1] == check+1 {
-					newScore += scoreMap[i][j+1]
-				}
-				scoreMap[i][j] = newScore
+				//add up the four adjacent number of paths where they are 1 above current height
+				scoreMap[i][j] = getNewScore(mapping,scoreMap,i,j,check)
 				if check == 0 {
-					total += newScore
+					//at base, add total paths to summits to the running total
+					total += scoreMap[i][j]
 				}
 			}
 		}
@@ -100,7 +84,8 @@ func getMapping(name string) [][]int {
 	return mapping
 }
 
-func createScoreMap(y int, x int) [][][][2]int {
+func createReachableSummitMap(y int, x int) [][][][2]int {
+	//create array of empty coordinate arrays in the same size as the main map
 	result := [][][][2]int{}
 	for i := 0; i < y; i++ {
 		newLine := [][][2]int{}
@@ -112,7 +97,28 @@ func createScoreMap(y int, x int) [][][][2]int {
 	return result
 }
 
-func createScoreMap2(y int, x int) [][]int {
+func getReachableSummits(mapping [][]int, reachableSummitMap [][][][2]int, check int, i int, j int) [][2]int {
+	reachableSummits := [][2]int{}
+	//add unique reachable summits in all four directions
+	//given that direction stays in bounds
+	//and direction has a height of 1 more than the location being checked
+	if i > 0 && mapping[i-1][j] == check+1 {
+		reachableSummits = addUnique(reachableSummits, reachableSummitMap[i-1][j])
+	}
+	if i < len(mapping)-1 && mapping[i+1][j] == check+1 {
+		reachableSummits = addUnique(reachableSummits, reachableSummitMap[i+1][j])
+	}
+	if j > 0 && mapping[i][j-1] == check+1 {
+		reachableSummits = addUnique(reachableSummits, reachableSummitMap[i][j-1])
+	}
+	if j < len(mapping[0])-1 && mapping[i][j+1] == check+1 {
+		reachableSummits = addUnique(reachableSummits, reachableSummitMap[i][j+1])
+	}
+	return reachableSummits
+}
+
+func createScoreMap(y int, x int) [][]int {
+	//create array of 0s, in the same size of the main map
 	result := [][]int{}
 	for i := 0; i < y; i++ {
 		newLine := []int{}
@@ -122,6 +128,26 @@ func createScoreMap2(y int, x int) [][]int {
 		result = append(result, newLine)
 	}
 	return result
+}
+
+func getNewScore(mapping [][]int, scoreMap [][]int, i int, j int, check int) int {
+	newScore := 0
+	//add number of paths to summits in all four directions
+	//given that direction stays in bounds
+	//and direction has a height of 1 more than the location being checked
+	if i > 0 && mapping[i-1][j] == check+1 {
+		newScore += scoreMap[i-1][j]
+	}
+	if i < len(mapping)-1 && mapping[i+1][j] == check+1 {
+		newScore += scoreMap[i+1][j]
+	}
+	if j > 0 && mapping[i][j-1] == check+1 {
+		newScore += scoreMap[i][j-1]
+	}
+	if j < len(mapping[0])-1 && mapping[i][j+1] == check+1 {
+		newScore += scoreMap[i][j+1]
+	}
+	return newScore
 }
 
 func addUnique(newScore [][2]int, toAppend [][2]int) [][2]int {
