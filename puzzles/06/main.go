@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kylehoehns/aoc-2023-go/pkg/files"
+	"github.com/PhilAldridge/aoc-2024-go/pkg/files"
 )
 
 func main() {

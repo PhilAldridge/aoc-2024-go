@@ -1,4 +1,4 @@
-module github.com/kylehoehns/aoc-2023-go
+module github.com/PhilAldridge/aoc-2024-go
 
 go 1.21
 

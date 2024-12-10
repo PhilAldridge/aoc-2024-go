@@ -2,7 +2,7 @@
 
 Working through problems for [Advent of Code 2024](https://adventofcode.com/2024).
 
-Fork of template repo: github.com/kylehoehns/aoc-2023-go/ 
+Fork of template repo: github.com/PhilAldridge/aoc-2024-go/ 
 
 Using [Go](https://go.dev/)
 
