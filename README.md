@@ -78,8 +78,8 @@ Part 2: 542.2µs
 Part 1: 543.3µs
 Part 2: 17.9595ms
 ### Day 12
-Part 1: 
-Part 2: 
+Part 1: 13.1842ms
+Part 2: 13.161ms
 ### Day 13
 Part 1: 
 Part 2: 
