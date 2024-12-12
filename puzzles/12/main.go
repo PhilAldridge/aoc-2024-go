@@ -25,7 +25,7 @@ func part1(name string) int {
 	plotMap:= make(map[[2]int]int)
 	plots:= []plot{}
 	for i, row := range garden {
-		for j, _ := range row {
+		for j := range row {
 			pos := [2]int{i,j}
 			//If not in a plot already, create a new plot and add all tiles to it
 			_, plotInMap := plotMap[pos]
@@ -58,7 +58,7 @@ func part2(name string) int {
 	plotMap:= make(map[[2]int]int)
 	plots:= []plot{}
 	for i, row := range garden {
-		for j, _ := range row {
+		for j := range row {
 			pos := [2]int{i,j}
 			//If not in a plot already, create a new plot and add all tiles to it
 			_, plotInMap := plotMap[pos]
