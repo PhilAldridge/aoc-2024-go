@@ -7,6 +7,11 @@ type Coord struct {
 	J int
 }
 
+type Line struct {
+	M Coord
+	C Coord
+}
+
 func (a Coord) Up(amount int) Coord {
 	return Coord{
 		I: a.I - amount,
@@ -68,8 +73,8 @@ func (a Coord) Subtract (b Coord) Coord {
 	}
 }
 
-func (a Coord) OnLine (c Coord, m Coord) bool {
-	return (a.I - c.I)*m.J == (a.J-c.J)*m.I
+func (a Coord) OnLine (l Line) bool {
+	return (a.I - l.C.I)*l.M.J == (a.J-l.C.J)*l.M.I
 }
 
 func (a Coord) MoveBy (m Coord, times int) Coord {
@@ -91,4 +96,28 @@ func (a Coord) SameDirectionAs (b Coord) bool {
 		return false
 	}
 	return a.I * b.J == a.J * b.I
+}
+
+func LinesIntersect(l1 Line, l2 Line) bool {
+	if l1.M.SameDirectionAs(l2.M) {
+		return l1.C.OnLine(l2)
+	}
+	return true
+}
+
+func IntersectionPoint (l1 Line, l2 Line) Coord {
+	if l1.M.SameDirectionAs(l2.M) {
+		panic("intersectionPoint function not designed for parallel lines") 
+	}
+	l1D := dotProduct(l1.M,l1.C)*1.0
+	l2D := dotProduct(l2.M,l2.C)*1.0
+	det := (l1.M.I*l2.M.J - l1.M.J*l2.M.I)*1.0
+	return NewCoord(
+		(l1D*l2.M.J - l2D*l2.M.I)/det,
+		(l1.M.I*l2D - l1.M.J*l1D)/det,
+	)
+}
+
+func dotProduct(a Coord,b Coord) int{
+	return a.I*b.I + a.J*b.J
 }
