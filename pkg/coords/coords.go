@@ -121,3 +121,17 @@ func IntersectionPoint(l1 Line, l2 Line) Coord {
 func dotProduct(a Coord, b Coord) int {
 	return a.I*b.I + a.J*b.J
 }
+
+func NewLine (m Coord, c Coord) Line {
+	return Line{
+		M: m,
+		C: c,
+	}
+}
+
+func (a Coord) Multiply (lambda int) Coord {
+	return Coord{
+		I: a.I*lambda,
+		J: a.J*lambda,
+	}
+}
