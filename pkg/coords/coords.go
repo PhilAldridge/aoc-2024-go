@@ -135,3 +135,12 @@ func (a Coord) Multiply (lambda int) Coord {
 		J: a.J*lambda,
 	}
 }
+
+func CoordInSlice (c Coord, sl []Coord) bool {
+	for _,s:= range sl {
+		if c.I==s.I && c.J == s.J {
+			return true
+		}
+	}
+	return false
+}

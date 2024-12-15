@@ -84,8 +84,8 @@ Part 2: 13.161ms
 Part 1: 11.108ms
 Part 2: 526.7µs
 ### Day 14
-Part 1: 
-Part 2: 
+Part 1: 18.3097ms
+Part 2: 1.3002ms
 ### Day 15
 Part 1: 
 Part 2: 
