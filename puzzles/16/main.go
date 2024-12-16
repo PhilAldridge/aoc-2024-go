@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	//"sort"
 	"time"
 
 	"github.com/PhilAldridge/aoc-2024-go/pkg/bools"
@@ -21,9 +20,6 @@ func part1(name string) int {
 	lines:= files.ReadLines(name)
 	start, end:= getStartAndEnd(&lines)
 	paths := getPaths(&lines)
-	// sort.Slice(paths, func(i, j int) bool {
-	// 	return paths[i].distance < paths[j].distance
-	// })
 	return calcRoute(paths, start, end)
 }
 
@@ -158,25 +154,29 @@ func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
 
 	for {
 		for i,v:= range nodeArr {
+			//start from locked in nodes and check them
 			if v.Checked || !v.Locked {continue}
 			nodeArr[i].Checked = true
+			//find all paths from the node being checked
 			for _,path:=range paths {
 				if path.start.I != v.pos.I || path.start.J != v.pos.J ||
 				!path.startDir.IsSameDirectionAs(v.dir) {continue}
-				nodeFound:= false
+				nodeInArray:= false
 				for j,v2:=range nodeArr {
 					if v2.Locked {continue}
 					if v2.pos.I != path.end.I || v2.pos.J !=path.end.J {
 						continue
 					}
-					nodeFound = true
+					//if node already in array, update min cost
+					nodeInArray = true
 					newCost:= v.Cost + path.distance + turn(path.endDir,v2.dir)
 					if newCost < v2.Cost {
 						nodeArr[j].Cost = newCost
 					}
 					
 				}
-				if !nodeFound {
+				//if node not in array, create new node facing in each direction at end of the path
+				if !nodeInArray {
 					newCost:= v.Cost + path.distance
 					nodeArr = append(nodeArr, 
 						node{
@@ -212,29 +212,35 @@ func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
 			}
 		}
 
-		minThisRound:= 8238947329874329
-		keysInMin := []int{}
+		keysInMin:= findMinUnlockedNodes(nodeArr)
 
-		for i,v:= range nodeArr {
-			if v.Locked {continue}
-			if v.Cost < minThisRound {
-				minThisRound = v.Cost
-				keysInMin = []int{i}
-			} else if v.Cost == minThisRound {
-				keysInMin = append(keysInMin,i)
-			}
-		}
-
+		//if end is one of the minNodes, return its cost.
+		//lock all minNodes
 		for _,v:=range keysInMin {
 			if nodeArr[v].pos.I == end.I && nodeArr[v].pos.J==end.J {
 				return nodeArr[v].Cost
 			}
 			nodeArr[v].Locked =true
 		}
-		//fmt.Println(pathCosts)
 	}
 
 
+}
+
+func findMinUnlockedNodes(nodeArr []node)  []int {
+	minThisRound:= 8238947329874329
+		keysInMin := []int{}
+	//find all keys with the minimumn distance
+	for i,v:= range nodeArr {
+		if v.Locked {continue}
+		if v.Cost < minThisRound {
+			minThisRound = v.Cost
+			keysInMin = []int{i}
+		} else if v.Cost == minThisRound {
+			keysInMin = append(keysInMin,i)
+		}
+	}
+	return keysInMin
 }
 
 func turn(dir coords.Coord, targetDir coords.Coord) int {
