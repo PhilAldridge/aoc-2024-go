@@ -144,3 +144,37 @@ func CoordInSlice (c Coord, sl []Coord) bool {
 	}
 	return false
 }
+
+var DirectionsInOrder = [4]Coord{
+	NewCoord(0,1),
+	NewCoord(-1,0),
+	NewCoord(0,-1),
+	NewCoord(1,0),
+}
+
+func TurnLeft(a Coord) Coord {
+	for i,v := range DirectionsInOrder {
+		if v.IsSameDirectionAs(a) {
+			return DirectionsInOrder[(i+1)%4]
+		}
+	}
+	panic("")
+}
+
+func TurnRight(a Coord) Coord {
+	for i,v := range DirectionsInOrder {
+		if v.IsSameDirectionAs(a) {
+			return DirectionsInOrder[(i+3)%4]
+		}
+	}
+	panic("")
+}
+
+func TurnBack(a Coord) Coord {
+	for i,v := range DirectionsInOrder {
+		if v.IsSameDirectionAs(a) {
+			return DirectionsInOrder[(i+2)%4]
+		}
+	}
+	panic("")
+}
