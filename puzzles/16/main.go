@@ -37,7 +37,6 @@ type path struct {
 	startDir coords.Coord 
 	endDir coords.Coord
 	distance int
-	squares int
 }
 
 func getStartAndEnd(lines *[]string) (coords.Coord,coords.Coord) {
@@ -86,7 +85,6 @@ func getPathsFromNode(lines *[]string,start coords.Coord) []path {
 				startDir: dir.Subtract(start),
 				endDir: endDir,
 				distance: len(pathCoords)-1 + turns*1000,
-				squares: len(pathCoords)-1,
 			})
 		}
 	}
@@ -124,7 +122,6 @@ type node struct {
 	Cost int
 	Locked bool
 	Checked bool
-	squares int
 }
 
 func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
@@ -176,10 +173,6 @@ func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
 					newCost:= v.Cost + path.distance + turn(path.endDir,v2.dir)
 					if newCost < v2.Cost {
 						nodeArr[j].Cost = newCost
-						nodeArr[j].squares = v.squares + path.squares
-					}
-					if newCost == v2.Cost {
-						nodeArr[j].squares += v.squares + path.squares
 					}
 					
 				}
@@ -192,7 +185,6 @@ func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
 							Cost:newCost,
 							Locked: false,
 							Checked: false,
-							squares : v.squares + path.squares,
 						},
 						node{
 							pos:path.end,
@@ -200,7 +192,6 @@ func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
 							Cost:newCost + 1000,
 							Locked: false,
 							Checked: false,
-							squares : v.squares + path.squares,
 						},
 						node{
 							pos:path.end,
@@ -208,7 +199,6 @@ func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
 							Cost:newCost + 1000,
 							Locked: false,
 							Checked: false,
-							squares : v.squares + path.squares,
 						},
 						node{
 							pos:path.end,
@@ -216,7 +206,6 @@ func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
 							Cost:2000 + newCost,
 							Locked: false,
 							Checked: false,
-							squares : v.squares + path.squares,
 						},
 					)
 				}
@@ -235,17 +224,12 @@ func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
 				keysInMin = append(keysInMin,i)
 			}
 		}
-		total:=0
+
 		for _,v:=range keysInMin {
 			if nodeArr[v].pos.I == end.I && nodeArr[v].pos.J==end.J {
-				fmt.Println(total)
-				total+= nodeArr[v].squares
+				return nodeArr[v].Cost
 			}
 			nodeArr[v].Locked =true
-		}
-		if total != 0 {
-			fmt.Println(total)
-			return minThisRound
 		}
 		//fmt.Println(pathCosts)
 	}
