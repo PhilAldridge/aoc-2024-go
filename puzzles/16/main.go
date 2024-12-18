@@ -118,9 +118,11 @@ type node struct {
 	Cost int
 	Locked bool
 	Checked bool
+	from []coords.Coord
 }
 
 func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
+	pathMap:= make(map[coords.Coord][]coords.Coord)
 	nodeArr:= []node{
 		{
 			pos: start,
@@ -172,12 +174,16 @@ func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
 					newCost:= v.Cost + path.distance + turn(path.endDir,v2.dir)
 					if newCost < v2.Cost {
 						nodeArr[j].Cost = newCost
+						nodeArr[j].from = []coords.Coord{path.start}
 					}
-					
+					if newCost == v2.Cost && !coords.CoordInSlice(path.start,nodeArr[j].from) {
+						nodeArr[j].from = append(nodeArr[j].from, path.start)
+					}
 				}
 				//if node not in array, create new node facing in each direction at end of the path
 				if !nodeInArray {
 					newCost:= v.Cost + path.distance
+					from:= []coords.Coord{path.start}
 					nodeArr = append(nodeArr, 
 						node{
 							pos:path.end,
@@ -185,6 +191,7 @@ func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
 							Cost:newCost,
 							Locked: false,
 							Checked: false,
+							from: from,
 						},
 						node{
 							pos:path.end,
@@ -192,6 +199,7 @@ func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
 							Cost:newCost + 1000,
 							Locked: false,
 							Checked: false,
+							from: from,
 						},
 						node{
 							pos:path.end,
@@ -199,6 +207,7 @@ func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
 							Cost:newCost + 1000,
 							Locked: false,
 							Checked: false,
+							from: from,
 						},
 						node{
 							pos:path.end,
@@ -206,6 +215,7 @@ func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
 							Cost:2000 + newCost,
 							Locked: false,
 							Checked: false,
+							from: from,
 						},
 					)
 				}
@@ -216,15 +226,50 @@ func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
 
 		//if end is one of the minNodes, return its cost.
 		//lock all minNodes
+		done:= false
 		for _,v:=range keysInMin {
-			if nodeArr[v].pos.I == end.I && nodeArr[v].pos.J==end.J {
-				return nodeArr[v].Cost
-			}
 			nodeArr[v].Locked =true
+			pathMap[nodeArr[v].pos] = nodeArr[v].from
+			if nodeArr[v].pos.I == end.I && nodeArr[v].pos.J==end.J {
+				done = true
+			}
+		}
+		if done {
+			pathsUsed:= printnodes(pathMap,[][]coords.Coord{{end}})
+				return totalPaths(paths, pathsUsed )
 		}
 	}
 
 
+}
+
+func totalPaths(paths []path, pathsUsed [][]coords.Coord) int {
+	total := 0
+
+	return total
+}
+
+func printnodes(pathMap map[coords.Coord][]coords.Coord,paths [][]coords.Coord) [][]coords.Coord {
+	NextPaths:= [][]coords.Coord{}
+	for _,path := range paths {
+		end:= path[0]
+		prev:= pathMap[end]
+		if len(prev) == 0 {
+			break
+		}
+		for _,p:= range prev {
+			if coords.CoordInSlice(p,path) {
+				break
+			}
+			NextPaths = append(NextPaths, append([]coords.Coord{p},path...))
+		}
+	}
+	if len(NextPaths)==0 {
+		return paths
+	} else {
+		printnodes(pathMap,NextPaths)
+	}
+	
 }
 
 func findMinUnlockedNodes(nodeArr []node)  []int {
