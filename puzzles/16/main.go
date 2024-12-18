@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/PhilAldridge/aoc-2024-go/pkg/bools"
 	"github.com/PhilAldridge/aoc-2024-go/pkg/coords"
 	"github.com/PhilAldridge/aoc-2024-go/pkg/files"
 )
@@ -18,26 +17,19 @@ func main() {
 
 func part1(name string) int {
 	lines:= files.ReadLines(name)
-	start, end:= getStartAndEnd(&lines)
-	paths := getPaths(&lines)
-	return calcRoute(paths, start, end)
+	start, end:= getStartAndEnd(lines)
+	return calcRoute(lines, start, end, false)
 }
 
 func part2(name string) int {
-	return 0
+	lines:= files.ReadLines(name)
+	start, end:= getStartAndEnd(lines)
+	return calcRoute(lines, start, end, true)
 }
 
-type path struct {
-	start coords.Coord
-	end coords.Coord
-	startDir coords.Coord 
-	endDir coords.Coord
-	distance int
-}
-
-func getStartAndEnd(lines *[]string) (coords.Coord,coords.Coord) {
+func getStartAndEnd(lines []string) (coords.Coord,coords.Coord) {
 	var start,end coords.Coord
-	for i,line:= range *lines {
+	for i,line:= range lines {
 		for j,char:= range line {
 			if char == 'S' {
 				start = coords.NewCoord(i,j)
@@ -49,253 +41,156 @@ func getStartAndEnd(lines *[]string) (coords.Coord,coords.Coord) {
 	return start, end
 }
 
-func getPaths(lines *[]string) []path {
-	paths:= []path{}
-	for i,line:= range *lines {
-		for j,char:= range line {
-			if char == '#' {
+type pathCost struct {
+	minCost int
+	squaresVisited []coords.Coord
+}
+
+
+func calcRoute(grid []string, start coords.Coord, end coords.Coord,outputPart2 bool) int {
+	pathCostMap:= make(map[[3]int]pathCost)
+	pathCostMap[[3]int{start.I,start.J,0}] = pathCost{
+		minCost: 0,
+		squaresVisited: []coords.Coord{},
+	}
+
+	lockedCoords:= [][3]int{{start.I,start.J,0}}
+	coordsToCheck:= [][3]int{{start.I,start.J,0}}
+
+	for len(coordsToCheck) >0 {
+		//Check paths
+		for _,coord:= range coordsToCheck {
+			for i:=0; i<4; i++ {
+				nextCoord:= coords.NewCoord(coord[0],coord[1])
+				cost:= 1000
+				if coord[2]-i ==2 || i-coord[2]==2 {
+					cost= 2000
+				}
+				if i == coord[2] {
+					nextCoord = nextCoord.Add(coords.DirectionsInOrder[i])
+					cost =1
+				}
+				if inMap([3]int{nextCoord.I,nextCoord.J,i},lockedCoords) {
+					continue
+				}
+				cost+= pathCostMap[coord].minCost
+
+				if grid[nextCoord.I][nextCoord.J] == '#' {
+					continue
+				}
+				_, ok := pathCostMap[[3]int{nextCoord.I,nextCoord.J,i}]
+				if !ok {
+					//add to pathCostMap
+					addToMap(pathCostMap, nextCoord, coord,i,cost)
+				} else {
+					//update pathCostMap if cheaper
+					updateMap(pathCostMap, nextCoord, coord,i,cost)
+				}
+			}
+		}
+		
+		//prune
+		for _,c:= range coordsToCheck {
+			if c[0]==end.I && c[1]==end.J {
 				continue
 			}
-			if bools.CountTrues(
-				(*lines)[i][j-1]!='#',
-				(*lines)[i][j+1]!='#',
-				(*lines)[i-1][j]!='#',
-				(*lines)[i+1][j]!='#',
-			)>2 || char != '.' {
-				paths = append(paths, getPathsFromNode(lines, coords.NewCoord(i,j))...)
-			}
+			delete(pathCostMap,c)
 		}
-	}
-	return paths
-}
-
-func getPathsFromNode(lines *[]string,start coords.Coord) []path {
-	paths:= []path{}
-	dirs := start.GetAdjacent()
-	for _,dir:= range dirs {
-		if (*lines)[dir.I][dir.J] != '#' {
-			end, pathCoords, endDir, turns := followPath(lines,dir,[]coords.Coord{start,dir},dir.Subtract(start),0)
-			paths = append(paths, path{
-				start: start,
-				end:end,
-				startDir: dir.Subtract(start),
-				endDir: endDir,
-				distance: len(pathCoords)-1 + turns*1000,
-			})
-		}
-	}
-	return paths
-}
-
-func followPath(lines *[]string,pos coords.Coord, pathSoFar []coords.Coord, dir coords.Coord, turns int) (coords.Coord, []coords.Coord, coords.Coord, int) {
-	nextPoss := pos.GetAdjacent()
-	var nextPosition coords.Coord
-	nextPositionFound:= false
-	prevPos := pos.Subtract(dir)
-	for _,nextPos:= range nextPoss {
-		if (prevPos.I != nextPos.I || prevPos.J != nextPos.J) && (*lines)[nextPos.I][nextPos.J] != '#' {
-			if nextPositionFound {
-				return pos, pathSoFar, dir, turns
-			}
-			nextPosition = nextPos
-			nextPositionFound = true
-		}
-	}
-	if !nextPositionFound || (*lines)[pos.I][pos.J] != '.' {
-		return pos, pathSoFar, dir, turns
-	}
-	straightAhead := pos.Add(dir)
-	if straightAhead.I == nextPosition.I && straightAhead.J == nextPosition.J {
-		return followPath(lines,nextPosition,append(pathSoFar,nextPosition),nextPosition.Subtract(pos),turns)
+		//Find min coords not locked and add to ToCheck and Locked
+		coordsToCheck = getMinUnlockedCoords(pathCostMap,lockedCoords)
+		lockedCoords = append(coordsToCheck, lockedCoords...)
 	}
 	
-	return followPath(lines,nextPosition,append(pathSoFar,nextPosition),nextPosition.Subtract(pos),turns+1)
-}
-
-type node struct {
-	pos coords.Coord
-	dir coords.Coord
-	Cost int
-	Locked bool
-	Checked bool
-	from []coords.Coord
-}
-
-func calcRoute(paths []path, start coords.Coord, end coords.Coord) int {
-	pathMap:= make(map[coords.Coord][]coords.Coord)
-	nodeArr:= []node{
-		{
-			pos: start,
-			dir: coords.NewCoord(0,1),
-			Cost:0,
-			Locked:true,
-			Checked: false,
-		},
-		{
-			pos: start,
-			dir: coords.NewCoord(-1,0),
-			Cost:1000,
-			Locked:true,
-			Checked: false,
-		},
-		{
-			pos: start,
-			dir: coords.NewCoord(0,-1),
-			Cost:2000,
-			Locked:true,
-			Checked: false,
-		},
-		{
-			pos: start,
-			dir: coords.NewCoord(1,0),
-			Cost:1000,
-			Locked:true,
-			Checked: false,
-		},
-	}
-
-	for {
-		for i,v:= range nodeArr {
-			//start from locked in nodes and check them
-			if v.Checked || !v.Locked {continue}
-			nodeArr[i].Checked = true
-			//find all paths from the node being checked
-			for _,path:=range paths {
-				if path.start.I != v.pos.I || path.start.J != v.pos.J ||
-				!path.startDir.IsSameDirectionAs(v.dir) {continue}
-				nodeInArray:= false
-				for j,v2:=range nodeArr {
-					if v2.Locked {continue}
-					if v2.pos.I != path.end.I || v2.pos.J !=path.end.J {
-						continue
-					}
-					//if node already in array, update min cost
-					nodeInArray = true
-					newCost:= v.Cost + path.distance + turn(path.endDir,v2.dir)
-					if newCost < v2.Cost {
-						nodeArr[j].Cost = newCost
-						nodeArr[j].from = []coords.Coord{path.start}
-					}
-					if newCost == v2.Cost && !coords.CoordInSlice(path.start,nodeArr[j].from) {
-						nodeArr[j].from = append(nodeArr[j].from, path.start)
-					}
-				}
-				//if node not in array, create new node facing in each direction at end of the path
-				if !nodeInArray {
-					newCost:= v.Cost + path.distance
-					from:= []coords.Coord{path.start}
-					nodeArr = append(nodeArr, 
-						node{
-							pos:path.end,
-							dir:path.endDir,
-							Cost:newCost,
-							Locked: false,
-							Checked: false,
-							from: from,
-						},
-						node{
-							pos:path.end,
-							dir:coords.TurnLeft(path.endDir),
-							Cost:newCost + 1000,
-							Locked: false,
-							Checked: false,
-							from: from,
-						},
-						node{
-							pos:path.end,
-							dir:coords.TurnRight(path.endDir),
-							Cost:newCost + 1000,
-							Locked: false,
-							Checked: false,
-							from: from,
-						},
-						node{
-							pos:path.end,
-							dir:coords.TurnBack(path.endDir),
-							Cost:2000 + newCost,
-							Locked: false,
-							Checked: false,
-							from: from,
-						},
-					)
+	minCost:= 297489323298474893
+	squares:= []coords.Coord{}
+	for i:=0; i<4; i++ {
+		nextCost := pathCostMap[[3]int{end.I, end.J, i}].minCost
+		if nextCost == 0 {
+			continue
+		}
+		if nextCost < minCost {
+			minCost = nextCost
+			squares = pathCostMap[[3]int{end.I, end.J, i}].squaresVisited
+		}
+		if nextCost == minCost {
+			for _,path:= range pathCostMap[[3]int{end.I, end.J, i}].squaresVisited {
+				if !coords.CoordInSlice(path,squares) {
+					squares = append(squares, path)
 				}
 			}
 		}
-
-		keysInMin:= findMinUnlockedNodes(nodeArr)
-
-		//if end is one of the minNodes, return its cost.
-		//lock all minNodes
-		done:= false
-		for _,v:=range keysInMin {
-			nodeArr[v].Locked =true
-			pathMap[nodeArr[v].pos] = nodeArr[v].from
-			if nodeArr[v].pos.I == end.I && nodeArr[v].pos.J==end.J {
-				done = true
-			}
-		}
-		if done {
-			pathsUsed:= printnodes(pathMap,[][]coords.Coord{{end}})
-				return totalPaths(paths, pathsUsed )
-		}
-	}
-
-
-}
-
-func totalPaths(paths []path, pathsUsed [][]coords.Coord) int {
-	total := 0
-
-	return total
-}
-
-func printnodes(pathMap map[coords.Coord][]coords.Coord,paths [][]coords.Coord) [][]coords.Coord {
-	NextPaths:= [][]coords.Coord{}
-	for _,path := range paths {
-		end:= path[0]
-		prev:= pathMap[end]
-		if len(prev) == 0 {
-			break
-		}
-		for _,p:= range prev {
-			if coords.CoordInSlice(p,path) {
-				break
-			}
-			NextPaths = append(NextPaths, append([]coords.Coord{p},path...))
-		}
-	}
-	if len(NextPaths)==0 {
-		return paths
-	} else {
-		printnodes(pathMap,NextPaths)
 	}
 	
+	if outputPart2 {
+		return len(squares) + 1
+	}
+	return minCost
 }
 
-func findMinUnlockedNodes(nodeArr []node)  []int {
-	minThisRound:= 8238947329874329
-		keysInMin := []int{}
-	//find all keys with the minimumn distance
-	for i,v:= range nodeArr {
-		if v.Locked {continue}
-		if v.Cost < minThisRound {
-			minThisRound = v.Cost
-			keysInMin = []int{i}
-		} else if v.Cost == minThisRound {
-			keysInMin = append(keysInMin,i)
+func getMinUnlockedCoords(pathCostMap map[[3]int]pathCost, lockedCoords [][3]int) [][3]int {
+	coordsToCheck:= [][3]int{}
+	currentMin := 94723792435789843
+	for k,v:= range pathCostMap {
+		if inMap(k,lockedCoords) {
+			continue
+		}
+		if v.minCost < currentMin {
+			currentMin = v.minCost
+			coordsToCheck = [][3]int{k}
+		} else if v.minCost == currentMin {
+			if !inMap(k,coordsToCheck) {
+				coordsToCheck = append(coordsToCheck, k)
+			}
 		}
 	}
-	return keysInMin
+	return coordsToCheck
 }
 
-func turn(dir coords.Coord, targetDir coords.Coord) int {
-	newDir := coords.NewCoord(dir.I,dir.J)
-	if newDir.I == targetDir.I && newDir.J == targetDir.J {return 0}
-	newDir = coords.TurnLeft(dir)
-	if newDir.I == targetDir.I && newDir.J == targetDir.J {return 1000}
-	newDir = coords.TurnRight(dir)
-	if newDir.I == targetDir.I && newDir.J == targetDir.J {return 1000}
-	if dir.I == -targetDir.I && dir.J == -targetDir.J {return 2000}
-	panic("turn not found")
+func inMap(a [3]int, b [][3]int) bool {
+	for _,v:= range b {
+		if a[0]==v[0] && a[1]==v[1] && a[2]==v[2] {
+			return true
+		}
+	}
+	return false
+}
 
+func updateMap(pathCostMap map[[3]int]pathCost, nextCoord coords.Coord, prevPos [3]int, newDir int,cost int) {
+	lastPathCost := pathCostMap[prevPos]
+	squares:= append([]coords.Coord{coords.NewCoord(prevPos[0],prevPos[1])},lastPathCost.squaresVisited...)
+		currentPathCost:= pathCostMap[[3]int{nextCoord.I,nextCoord.J,newDir}]
+		currentPathSquares:= append([]coords.Coord{},currentPathCost.squaresVisited...)
+		if currentPathCost.minCost < cost {
+			return
+		}
+		if currentPathCost.minCost == cost {
+			for _,path:= range squares {
+				if !coords.CoordInSlice(path,currentPathSquares) {
+					currentPathSquares = append(currentPathSquares, path)
+				}
+			}
+			pathCostMap[[3]int{nextCoord.I,nextCoord.J, newDir}] = pathCost{
+				minCost: cost,
+				squaresVisited: currentPathSquares,
+			}
+		}
+		if currentPathCost.minCost > cost {
+			pathCostMap[[3]int{nextCoord.I,nextCoord.J, newDir}] = pathCost{
+				minCost: cost,
+				squaresVisited: squares,
+			}
+		}
+}
+
+func addToMap(pathCostMap map[[3]int]pathCost, nextCoord coords.Coord, prevPos [3]int, startDir int, cost int) {
+	lastPathCost := pathCostMap[prevPos]
+		prevCoord:= coords.NewCoord(prevPos[0],prevPos[1])
+		newSquaresVisited := append([]coords.Coord{},lastPathCost.squaresVisited...)
+		if !coords.CoordInSlice(prevCoord,newSquaresVisited) {
+			newSquaresVisited = append(newSquaresVisited, prevCoord)
+		}
+		pathCostMap[[3]int{nextCoord.I,nextCoord.J, startDir}] = pathCost{
+			minCost: cost,
+			squaresVisited: newSquaresVisited,
+		}
 }

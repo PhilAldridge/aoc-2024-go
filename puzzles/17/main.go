@@ -62,11 +62,13 @@ func part2(name string) int {
 					stopper++
 				}
 				if ints.FromString(output[0])==program[len(program)-len(output)] {
-					fmt.Println(output)
 					newPrev = append(newPrev, a)
+					if len(output) == len(program) {
+						return a
+					}
 				}
 		
-				fmt.Printf("a: %d, output: %v\n", a, output)
+				//fmt.Printf("a: %d, output: %v\n", a, output)
 			}
 		}
 		prev = newPrev

@@ -87,17 +87,17 @@ Part 2: 526.7µs
 Part 1: 18.3097ms
 Part 2: 1.3002ms
 ### Day 15
-Part 1: 
-Part 2: 
+Part 1: 13.3216ms
+Part 2: 1.7127ms
 ### Day 16
-Part 1: 
-Part 2: 
+Part 1: 31.5604521s (was 0s before rewrite for part 2 (sad) )
+Part 2: 33.2683323s
 ### Day 17
-Part 1: 
-Part 2: 
+Part 1: 13.962ms
+Part 2: 1.2128ms
 ### Day 18
-Part 1: 
-Part 2: 
+Part 1: 27.2489ms
+Part 2: 13.5193703s
 ### Day 19
 Part 1: 
 Part 2: 
