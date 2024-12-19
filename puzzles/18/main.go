@@ -23,19 +23,59 @@ func part1(name string) int {
 }
 
 func part2(name string) string {
-	grid,gridSize:= createGrid(name)
-	leftToDrop:= leftToDrop(name)
-	for _,pos:= range leftToDrop {
-		grid[pos.I][pos.J] = '#'
-		if floodFill(grid,gridSize)==-1 {
-			return fmt.Sprintf("%d,%d",pos.J,pos.I)
+	file:= files.ReadParagraphs(name)
+	gridSize := ints.FromString(file[0][0])
+	grouping:= make(map[coords.Coord]string)
+	for _, pos:= range file[2] {
+		vals:= ints.FromStringSlice(strings.Split(pos,","))
+		position:= coords.NewCoord(vals[1],vals[0])
+		if position.I ==0 || position.J == gridSize-1 {
+			grouping[position] = "topright"
+		} else if position.J == 0 || position.I == gridSize-1 {
+			grouping[position] = "bottomleft"
+		} else {
+			grouping[position] = "ungrouped"
+		}
+		if updateAdjacent(position,grouping) {
+			return pos
 		}
 	}
-	for _,row:= range grid {
-		
-		fmt.Println(row)
+	panic("no blockage found")
+}
+
+func updateAdjacent(pos coords.Coord, grouping map[coords.Coord]string) bool {
+	groupFoundName:= grouping[pos]
+	adjacentSquares := [8]coords.Coord{
+		pos.Add(coords.NewCoord(1,1)),
+		pos.Add(coords.NewCoord(1,-1)),
+		pos.Add(coords.NewCoord(-1,1)),
+		pos.Add(coords.NewCoord(-1,-1)),
+		pos.Add(coords.NewCoord(0,1)),
+		pos.Add(coords.NewCoord(0,-1)),
+		pos.Add(coords.NewCoord(1,0)),
+		pos.Add(coords.NewCoord(-1,0)),
 	}
-	panic("pos not found")
+	for _, adj:= range adjacentSquares {
+		if adjGroup, ok:= grouping[adj];ok && adjGroup != "ungrouped" {
+			if groupFoundName != "ungrouped" && groupFoundName != adjGroup {
+				return true
+			}
+			groupFoundName = adjGroup
+			grouping[pos] = groupFoundName
+		}
+	}
+	if groupFoundName == "ungrouped" {
+		return false
+	}
+	for _, adj:= range adjacentSquares {
+		if adjGroup, ok:= grouping[adj];ok && adjGroup=="ungrouped" {
+			grouping[adj] = groupFoundName
+			if updateAdjacent(adj,grouping) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func createGrid(name string) ([][]byte,int) {
@@ -63,20 +103,6 @@ func createGrid(name string) ([][]byte,int) {
 		grid = append(grid, row)
 	}
 	return grid, gridSize
-}
-
-func leftToDrop(name string) []coords.Coord {
-	linesSplit:= files.ReadParagraphs(name)
-	memory:= ints.FromString(linesSplit[1][0])
-	positions:= []coords.Coord{}
-	for i, pos:= range linesSplit[2] {
-		if i< memory {
-			continue
-		}
-		vals:= ints.FromStringSlice(strings.Split(pos,","))
-		positions = append(positions, coords.NewCoord(vals[1],vals[0]))
-	}
-	return positions
 }
 
 func floodFill(grid [][]byte, gridSize int) int {

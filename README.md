@@ -97,7 +97,7 @@ Part 1: 13.962ms
 Part 2: 1.2128ms
 ### Day 18
 Part 1: 27.2489ms
-Part 2: 13.5193703s
+Part 2: 3.6928ms
 ### Day 19
 Part 1: 40.8085ms
 Part 2: 47.8861ms
