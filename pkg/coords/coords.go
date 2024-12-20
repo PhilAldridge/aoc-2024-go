@@ -178,3 +178,19 @@ func TurnBack(a Coord) Coord {
 	}
 	panic("")
 }
+
+func ManhattanDistance(a Coord, b Coord) int {
+	x:= a.J-b.J
+	y:= a.I-b.I
+	if x<0{
+		x*=-1
+	}
+	if y<0{
+		y*=-1
+	}
+	return x+y
+}
+
+func (a Coord) Equals (b Coord) bool {
+	return a.I == b.I && a.J == b.J
+}
