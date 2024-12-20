@@ -20,33 +20,9 @@ func part1(name string) int {
 	distanceMap := make(map[coords.Coord]int)
 	start:= findStart(grid)
 	floodFill(grid,distanceMap,start)
-	gaps:= []coords.Coord{
-		coords.NewCoord(0,2),
-		coords.NewCoord(0,-2),
-		coords.NewCoord(-2,0),
-		coords.NewCoord(2,0),
-	}
 	savingsCount:= make(map[int]int)
-	for k1,v1:= range distanceMap {
-		for k2,v2:= range distanceMap {
-			if !coords.CoordInSlice(k1.Subtract(k2),gaps) {
-				continue
-			}
-			saves:= v2-v1
-			if saves<=0 {
-				continue
-			}
-			savingsCount[saves-2]++
-		}
-	}
-	total:=0
-	for k,v:= range savingsCount {
-		if k <100 {
-			continue
-		}
-		total +=v
-	}
-	return total
+	glitch(distanceMap,savingsCount,2)	
+	return addSavings(savingsCount,100)
 }
 
 func part2(name string) int {
@@ -55,27 +31,8 @@ func part2(name string) int {
 	start:= findStart(grid)
 	floodFill(grid,distanceMap,start)
 	savingsCount:= make(map[int]int)
-	for k1,v1:= range distanceMap {
-		for k2,v2:= range distanceMap {
-			manhattan := coords.ManhattanDistance(k1,k2)
-			if manhattan > 20 {
-				continue
-			}
-			saves:= v2-v1-manhattan
-			if saves<=0 {
-				continue
-			}
-			savingsCount[saves]++
-		}
-	}
-	total:=0
-	for k,v:= range savingsCount {
-		if k <100 {
-			continue
-		}
-		total +=v
-	}
-	return total
+	glitch(distanceMap,savingsCount,20)	
+	return addSavings(savingsCount,100)
 }
 
 func findStart(grid []string) coords.Coord {
@@ -112,4 +69,31 @@ func floodFill(grid []string, distanceMap map[coords.Coord]int, start coords.Coo
 		}
 		positionsToCheck = nextChecks
 	}
+}
+
+func glitch(distanceMap map[coords.Coord]int, savingsCount map[int]int, maxGlitchDistance int) {
+	for k1,v1:= range distanceMap {
+		for k2,v2:= range distanceMap {
+			manhattan := coords.ManhattanDistance(k1,k2)
+			if manhattan > maxGlitchDistance {
+				continue
+			}
+			saves:= v2-v1-manhattan
+			if saves<=0 {
+				continue
+			}
+			savingsCount[saves]++
+		}
+	}
+}
+
+func addSavings(savingsCount map[int]int, minSaving int) int {
+	total:=0
+	for k,v:= range savingsCount {
+		if k <minSaving {
+			continue
+		}
+		total +=v
+	}
+	return total
 }
