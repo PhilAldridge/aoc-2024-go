@@ -105,8 +105,8 @@ Part 2: 47.8861ms
 Part 1: 876.5043ms
 Part 2: 705.0167ms
 ### Day 21
-Part 1: 
-Part 2: 
+Part 1: 2.1712ms
+Part 2: 515.5µs
 ### Day 22
 Part 1: 653.6313ms
 Part 2: 3.1990588s
