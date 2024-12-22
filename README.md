@@ -108,8 +108,8 @@ Part 2: 705.0167ms
 Part 1: 
 Part 2: 
 ### Day 22
-Part 1: 
-Part 2: 
+Part 1: 653.6313ms
+Part 2: 3.1990588s
 ### Day 23
 Part 1: 
 Part 2: 
