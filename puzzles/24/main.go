@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/PhilAldridge/aoc-2024-go/pkg/files"
@@ -23,36 +22,43 @@ func part1(name string) int {
 }
 
 func part2(name string) string {
-	outs:= parseOuts(name)
-	ins,_:= parseInput(name)
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-	wantedOutput:= getWantedOutput(ins)
-	var ans string
-	for a:=0; a<len(outs); a++ {
-		for b:=a+1; b<len(outs); b++ {
-			for c:=b+1; c<len(outs); c++ {
-				for d:=c+1; d<len(outs); d++ {
-					for e:= d+1; e<len(outs); e++ {
-						for f:= e+1; f<len(outs); f++ {
-							for g:=f+1; g<len(outs); g++ {
-								for h:=g+1; h<len(outs); h++ {
-									go goWrapPart1(name,[][2]string{
-										{outs[a],outs[b]},
-										{outs[c],outs[d]},
-										{outs[e],outs[f]},
-										{outs[g],outs[h]},
-									},wantedOutput,wg,&ans)
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	wg.Wait()
-	return ans
+	// outs:= parseOuts(name)
+	// ins,_:= parseInput(name)
+	// fmt.Println(len(outs))
+	// wantedOutput:= getWantedOutput(ins)
+	// for a:=0; a<len(outs); a++ {
+	// 	for b:=a+1; b<len(outs); b++ {
+	// 		for c:=b+1; c<len(outs); c++ {
+	// 			fmt.Println(c)
+	// 			for d:=c+1; d<len(outs); d++ {
+	// 				for e:= d+1; e<len(outs); e++ {
+	// 					for f:= e+1; f<len(outs); f++ {
+	// 						for g:=f+1; g<len(outs); g++ {
+	// 							for h:=g+1; h<len(outs); h++ {
+	// 								if calcPart1(name,[][2]string{
+	// 									{outs[a],outs[b]},
+	// 									{outs[c],outs[d]},
+	// 									{outs[e],outs[f]},
+	// 									{outs[g],outs[h]},
+	// 								}) == wantedOutput {
+	// 									return outs[a] + "," +
+	// 										outs[b] + "," +
+	// 										outs[c] + "," +
+	// 										outs[d] + "," +
+	// 										outs[e] + "," +
+	// 										outs[f] + "," +
+	// 										outs[g] + "," +
+	// 										outs[h] + "," 
+	// 								}
+	// 							}
+	// 						}
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
+	return ""
 }
 
 type gate struct {
@@ -89,7 +95,7 @@ func parseOuts(name string) []string {
 	// create an empty slice of key-value pairs
 	s := make([]string, 0, len(outs))
 	// append all map keys-value pairs to the slice
-	for k, _ := range outs {
+	for k := range outs {
 		s = append(s, k)
 	}
 	slices.Sort(s)
@@ -124,20 +130,6 @@ func getWantedOutput(inputs map[string]bool) int {
 		}
 	}
 	return res
-}
-
-func goWrapPart1(name string, swaps [][2]string, wantedOutput int, wg *sync.WaitGroup, res *string) {
-	if calcPart1(name,swaps) == wantedOutput {
-		*res = swaps[0][0] + "," + 
-			swaps[0][1] + "," + 
-			swaps[1][0] + "," + 
-			swaps[1][1] + "," + 
-			swaps[2][0] + "," + 
-			swaps[2][1] + "," + 
-			swaps[3][0] + "," + 
-			swaps[3][1] + "," 
-		wg.Done()
-	}
 }
 
 func calcPart1(name string, swaps [][2]string) int {
