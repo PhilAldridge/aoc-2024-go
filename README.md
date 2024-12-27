@@ -114,8 +114,7 @@ Part 2: 3.1990588s
 Part 1: 23.5402ms
 Part 2: 3.6132ms
 ### Day 24
-Part 1: 
-Part 2: 
+Part 1: 17.3383ms
+Part 2: 1.1922ms
 ### Day 25
-Part 1: 
-Part 2: 
+Part 1: 21.2481ms
