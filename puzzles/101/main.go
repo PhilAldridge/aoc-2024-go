@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/PhilAldridge/aoc-2024-go/pkg/files"
-	"github.com/PhilAldridge/aoc-2024-go/pkg/ints"
 )
 
 func main() {
@@ -19,6 +18,7 @@ func main() {
 func part1(name string) int {
 	dial := 50
 	MAX_VALUE:= 99
+	modulo:= MAX_VALUE + 1
 	zeroCount:=0
 	lines := files.ReadLines(name)
 	for _, l:= range lines {
@@ -33,9 +33,7 @@ func part1(name string) int {
 			dial += amount
 		}
 
-		dial = ints.Mod(dial, MAX_VALUE+1)
-
-		if dial ==0 {
+		if dial % modulo ==0 {
 			zeroCount ++
 		}
 	}
