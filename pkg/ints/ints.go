@@ -86,3 +86,10 @@ func GCD(a, b int) int {
 	}
 	return a
 }
+
+func Mod(x, d int) int {
+  if d < 0 { d = -d }
+  x = x % d
+  if x < 0 { return x + d }
+  return x
+}
