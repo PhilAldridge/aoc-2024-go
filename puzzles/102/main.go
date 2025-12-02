@@ -33,12 +33,7 @@ func part1(name string) int {
 		}
 	}
 
-	total:= 0
-	for code:= range invalidCodeSet {
-		total += code
-	}
-
-	return total
+	return totalOfSet(invalidCodeSet)
 }
 
 func part2(name string) int {
@@ -57,12 +52,7 @@ func part2(name string) int {
 		}
 	}
 
-	total:= 0
-	for code:= range invalidCodeSet {
-		total += code
-	}
-
-	return total
+	return totalOfSet(invalidCodeSet)
 }
 
 func recursiveCreateDoubleCode(halfCodeSoFar string, min int, max int, totalDigits int, codeSet map[int]bool) {
@@ -129,4 +119,13 @@ func recursiveNCode(halfCodeSoFar string, min int, max int, totalDigits int, cod
 		recursiveNCode(halfCodeSoFar + strconv.Itoa(i),min,max,totalDigits,codeSet)
 		i++
 	}
+}
+
+func totalOfSet(codeSet map[int]bool) int {
+	total:= 0
+	for code:= range codeSet {
+		total += code
+	}
+
+	return total
 }
