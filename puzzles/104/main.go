@@ -21,7 +21,6 @@ func part1(name string) int {
 	total:=0
 	for paperLocation := range paperMap {
 		if countAdjacents(paperLocation[0],paperLocation[1],paperMap) <4 {
-			fmt.Println(paperLocation)
 			total++
 		}
 	}
