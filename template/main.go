@@ -7,9 +7,13 @@ import (
 
 func main() {
 	start := time.Now()
-	fmt.Println("Part 1: ", part1("input.txt"), " in:", time.Since(start))
-	start = time.Now()
-	fmt.Println("Part 2: ", part2("input.txt"), " in:", time.Since(start))
+	fmt.Println("Part 1 answer: ", part1("input.txt"))
+	split := time.Now()
+	fmt.Println("Part 2 answer: ", part2("input.txt"))
+	
+	fmt.Println()
+	fmt.Println("Part 1: ", split.Sub(start))
+	fmt.Println("Part 2: ", time.Since(split))
 }
 
 func part1(name string) int {
