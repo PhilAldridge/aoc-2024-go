@@ -9,7 +9,7 @@ Using [Go](https://go.dev/)
 
 ## Setup
 
-1. Install Go from [here](https://golang.org/doc/install).
+1. [Install Go from here](https://golang.org/doc/install).
 2. Run the following script to install dependencies.
 
     ```shell
@@ -193,5 +193,3 @@ Part 2: 207.015µs
 
 Part 1: 23.695741ms
 Part 2: 27.181718ms
-
-
