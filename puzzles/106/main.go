@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/PhilAldridge/aoc-2024-go/pkg/files"
@@ -22,82 +21,119 @@ func main() {
 
 func part1(name string) int {
 	lines:= files.ReadLines(name)	
-	operations:= strings.Fields(lines[len(lines)-1])
 
-	values:= make([][]int, len(lines)-1)
-
-	for i:=0; i<len(lines)-1; i++ {
-		values[i] = ints.FromStringSlice(strings.Fields(lines[i]))
-	}
-
+	operations := getOperations(lines[len(lines)-1])
 
 	total:=0
-	for i, operation:= range operations {
-		if operation == "*" {
-			total += multiplyValues(values, i)
-			continue
-		}
-		total += addValues(values,i)
+
+	for _, operation:= range operations {
+		values := collectValuesHorizontal(lines[:len(lines)-1], operation.startIndex, operation.endIndex)
+		total += calculateSubtotal(values, operation.operator)
 	}
 
 	return total
 }
 
 func part2(name string) int {
-	lines:= files.ReadLines(name)
-	total:= 0
-	var operation rune
-	var subTotal int
+	lines:= files.ReadLines(name)	
 
-	for i:=0; i<len(lines[0]); i++ {
-		switch lines[len(lines)-1][i] {
-		case '*':
-			operation = '*'
-			subTotal = 1
-		case '+':
-			operation = '+'
-			subTotal = 0
+	operations := getOperations(lines[len(lines)-1])
+
+	total:=0
+
+	for _, operation:= range operations {
+		values := collectValuesVertical(lines[:len(lines)-1], operation.startIndex, operation.endIndex)
+		total += calculateSubtotal(values, operation.operator)
+	}
+
+	return total
+}
+
+type operation struct {
+	operator rune
+	startIndex int
+	endIndex int
+}
+
+func getOperations(finalLine string) []operation {
+	var operations []operation
+
+	for i,str:= range finalLine {
+		if str != ' ' {
+			if i != 0 {
+				operations[len(operations)-1].endIndex = i
+			}
+
+			operations = append(operations, operation{
+				operator: str,
+				startIndex: i,
+				endIndex: len(finalLine),
+			})
 		}
+	}
 
-		nextValString:= ""
-		for j:=0; j<len(lines)-1; j++ {
-			if lines[j][i]==' ' {
+	return operations
+}
+
+func collectValuesHorizontal(lines []string, start int, end int) []int {
+	var values []int 
+	for _, line:= range lines {
+		nextValueString := ""
+
+		for i:=start; i<end; i++ {
+			if line[i] == ' ' {
 				continue
 			}
-			nextValString += string(lines[j][i])
+
+			nextValueString += string(line[i])
 		}
 
-		if nextValString == "" {
-			total += subTotal
+		values = append(values, ints.FromString(nextValueString))
+	}
+
+	return values
+}
+
+func collectValuesVertical(lines []string, start int, end int) []int {
+	var values []int 
+	
+	for i:=start; i<end; i++ {
+		nextValueString := ""
+
+		for _,line:= range lines {
+			if line[i] == ' ' {
+				continue
+			}
+
+			nextValueString += string(line[i])
+		}
+
+		if nextValueString == "" {
 			continue
 		}
 
-		if operation == '*' {
-			subTotal *= ints.FromString(nextValString)
-		} else {
-			subTotal += ints.FromString(nextValString)
-		}
-
-		if i==len(lines[0])-1 {
-			total += subTotal
-		}
+		values = append(values, ints.FromString(nextValueString))
 	}
 
-	return total
+	return values
 }
 
-func multiplyValues(values [][]int, i int) int {
-	total:=1
-	for _,value:=range values {
-		total *= value[i]
+func calculateSubtotal(values []int, operator rune) int {
+	if operator == '*' {
+		subtotal:= 1
+
+		for _,value:= range values {
+			subtotal *= value
+		}
+
+		return subtotal
 	}
-	return total
-}
 
-func addValues(values [][]int, i int) int {
-	total:=0
+	subtotal:= 0
+
 	for _,value:= range values {
-		total += value[i]
+		subtotal += value
 	}
-	return total
+
+	return subtotal
 }
