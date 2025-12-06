@@ -56,6 +56,7 @@ func part1(name string) int {
 			continue
 		}
 
+		//in range == fresh
 		total++
 		i++
 	}
