@@ -52,30 +52,30 @@ func part1(name string) int {
 func part2(name string) int {
 	lines:= files.ReadLines(name)
 
-	startPos:=0
+	startX:=0
 
 	for i, char:= range lines[0]{
 		if char == 'S' {
-			startPos = i
+			startX = i
 			break
 		}
 	}
 
 	memoMap:= make(map[[2]int]int)
 
-	return countTimelines(1,startPos,lines, memoMap)
+	return countTimelines(1,startX,lines, memoMap)
 }
 
-func countTimelines(startLine int, startPos int, lines []string, memoMap map[[2]int]int) int {
-	mapTuple:= [2]int{startLine,startPos}
+func countTimelines(yIndex int, xIndex int, lines []string, memoMap map[[2]int]int) int {
+	mapTuple:= [2]int{yIndex,xIndex}
 
 	val, ok := memoMap[mapTuple]
 	if ok {
 		return val
 	}
 
-	if startLine == len(lines)-1 {
-		if lines[startLine][startPos] == '^' {
+	if yIndex == len(lines)-1 {
+		if lines[yIndex][xIndex] == '^' {
 			memoMap[mapTuple] = 2
 			return 2
 		}
@@ -86,19 +86,19 @@ func countTimelines(startLine int, startPos int, lines []string, memoMap map[[2]
 
 	total:=0
 
-	if lines[startLine][startPos] == '^' {
-		if startPos != 0 {
-			total+= countTimelines(startLine+1, startPos-1, lines,memoMap)
+	if lines[yIndex][xIndex] == '^' {
+		if xIndex != 0 {
+			total+= countTimelines(yIndex+1, xIndex-1, lines,memoMap)
 		}
 
-		if startPos+1 != len(lines[0]) {
-			total+= countTimelines(startLine+1,startPos+1, lines,memoMap)
+		if xIndex+1 != len(lines[0]) {
+			total+= countTimelines(yIndex+1,xIndex+1, lines,memoMap)
 		}
 
 
 		return total
 	} else {
-		total += countTimelines(startLine+1,startPos,lines,memoMap)
+		total += countTimelines(yIndex+1,xIndex,lines,memoMap)
 	}
 
 	memoMap[mapTuple] = total
