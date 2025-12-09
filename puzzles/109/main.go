@@ -42,22 +42,22 @@ func part1(name string) int {
 func part2(name string) int {
 	coords, _, _:= parseCoords(name)
 
-	grid:= make(map[[2]int]rune)
-
+	grid:= make(map[[2]int]bool)
+	
 	lastCoord:=coords[len(coords)-1]
-	grid[lastCoord] = '#'
+	grid[lastCoord] = true
 	for i:=0; i<len(coords); i++ {
-		grid[coords[i]] = '#'
+		grid[coords[i]] = true
 
 		if coords[i][0] != lastCoord[0] {
 			yFill:= ints.GetIntsBetween(coords[i][0], lastCoord[0])
 			for _,y:= range yFill {
-				grid[[2]int{y,lastCoord[1]}] = 'X'
+				grid[[2]int{y,lastCoord[1]}] = true
 			}
 		} else {
 			xFill:= ints.GetIntsBetween(coords[i][1], lastCoord[1])
 			for _,x:= range xFill {
-				grid[[2]int{lastCoord[0],x}] = 'X'
+				grid[[2]int{lastCoord[0],x}] = true
 			}
 		}
 
@@ -66,19 +66,78 @@ func part2(name string) int {
 
 	max:=0
 
-	for i:=0;i<len(coords); i++ {
-		for j:=i+1; j<len(coords); j++ {
-			ok, area:= isValid(coords[i],coords[j],grid)
-
-			if !ok {
+	IsValid := func (i,j int) bool {
+		for k:=0; k<len(coords); k++ {
+			if k==i || k==j {
 				continue
 			}
-			
-			if area > max {
-				max = area
+			if ints.IsBetween(coords[k][0], coords[i][0], coords[j][0]) &&
+				ints.IsBetween(coords[k][1], coords[i][1], coords[j][1]) {
+					return false
+				}
+		}
+
+		count:=0
+		midY:= (coords[i][0]+coords[j][0])/2
+		midX:= (coords[i][1]+coords[j][1])/2
+		if coords[i][0] != coords[j][0] {
+			for k:=0; k<=midY; k++ {
+				if grid[[2]int{k,midX}] {
+					count ++
+				}
+			}
+		} else {
+			for k:=0; k<=midX; k++ {
+				if grid[[2]int{midY,k}] {
+					count ++
+				}
 			}
 		}
-		fmt.Println(i)
+		if count %2 == 0 {
+			return false
+		}
+		
+		yInts :=ints.GetIntsBetween(coords[i][0], coords[j][0])
+		xInts :=ints.GetIntsBetween(coords[i][1],coords[j][1])
+
+		if len(yInts)>0 {
+			for _,x:= range xInts {
+				if grid[[2]int{yInts[0],x}] {
+					return false
+				}
+				if grid[[2]int{yInts[len(yInts)-1],x}] {
+					return false
+				}
+			}
+		}
+		
+		if len(xInts)>0 {
+			for _,y:= range yInts {
+			if grid[[2]int{y,xInts[0]}] {
+				return false
+			}
+			if grid[[2]int{y,xInts[len(xInts)-1]}] {
+				return false
+			}
+
+		}
+		}
+		
+
+		return true
+	}
+
+	for i:=0;i<len(coords); i++ {
+		for j:=i+1; j<len(coords); j++ {
+			if IsValid(i,j) {
+				area:= (ints.Abs(coords[i][0] - coords[j][0])+1) *
+				 	(ints.Abs(coords[i][1] - coords[j][1])+1) 
+			
+				if area > max {
+					max = area
+				}
+			}
+		}
 	}
 
 	return max
@@ -102,17 +161,4 @@ func parseCoords(name string) ([][2]int, int, int) {
 	}
 
 	return coords, maxY, maxX
-}
-
-func isValid(a [2]int, b [2]int, grid map[[2]int]rune) (bool,int) {
-	xInts:= ints.GetIntsBetween(a[1], b[1])
-	yInts:= ints.GetIntsBetween(a[0],b[0])
-	for _,x:=range xInts {
-		for _,y:= range yInts {
-			if _,ok:= grid[[2]int{y,x}]; ok {
-				return false,0
-			}
-		}
-	}
-	return true, (len(xInts)+2)*(len(yInts)+2)
 }

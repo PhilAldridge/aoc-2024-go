@@ -123,3 +123,15 @@ func GetIntsBetweenInclusive(a,b int) []int {
 	}
 	return result
 }
+
+func IsBetween(a,b,c int) bool {
+	if a < b && a > c {
+		return true
+	}
+
+	if a > b && a < c {
+		return true
+	}
+
+	return false
+}
