@@ -47,6 +47,31 @@ func Min(numbers []int) int {
 	return m
 }
 
+func Max(numbers []int) int {
+	m := numbers[0]
+	for _, num := range numbers {
+		if num > m {
+			m = num
+		}
+	}
+	return m
+}
+
+func MinMax(numbers []int) (int,int) {
+	m := numbers[0]
+	n := numbers[0]
+	for _, num := range numbers {
+		if num < m {
+			m = num
+			continue
+		}
+		if num > n {
+			n = num
+		}
+	}
+	return m,n
+}
+
 func AllSame(numbers []int) bool {
 	for i := 1; i < len(numbers); i++ {
 		if numbers[i] != numbers[i-1] {

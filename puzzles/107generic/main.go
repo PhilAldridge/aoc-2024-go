@@ -66,7 +66,7 @@ func part2(name string) int {
 		xIndex, yIndex int
 	}
 
-	memoTimeLines := memo.MemoRec(func(f func(params) int, p params) int {
+	memoTimeLines := func(f func(params) int, p params) int {
 		if p.yIndex == len(lines)-1 {
 			if lines[p.yIndex][p.xIndex] == '^' {
 				return 2
@@ -74,24 +74,12 @@ func part2(name string) int {
 			return 1
 		}
 
-		total := 0
-
-	if lines[p.yIndex][p.xIndex] == '^' {
-		if p.xIndex != 0 {
-			total += f(params{yIndex: p.yIndex+1, xIndex: p.xIndex-1})
+		if lines[p.yIndex][p.xIndex] == '^' {
+			return f(params{yIndex: p.yIndex + 1, xIndex: p.xIndex - 1}) + f(params{yIndex: p.yIndex + 1, xIndex: p.xIndex + 1})
 		}
 
-		if p.xIndex+1 != len(lines[0]) {
-			total += f(params{yIndex: p.yIndex+1, xIndex: p.xIndex+1})
-		}
-
-		return total
-	} else {
-		total += f(params{yIndex:  p.yIndex+1, xIndex: p.xIndex})
+		return f(params{yIndex: p.yIndex + 1, xIndex: p.xIndex})
 	}
 
-	return total
-	})
-
-	return memoTimeLines(params{yIndex: 1, xIndex: startX})
+	return memo.MemoizeRecursive(memoTimeLines)(params{yIndex: 1, xIndex: startX})
 }

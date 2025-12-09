@@ -1,8 +1,13 @@
 module github.com/PhilAldridge/aoc-2024-go
 
-go 1.22
+go 1.24.0
 
-require github.com/stretchr/testify v1.8.4
+toolchain go1.24.11
+
+require (
+	github.com/stretchr/testify v1.8.4
+	golang.org/x/sync v0.19.0
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

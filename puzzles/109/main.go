@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/PhilAldridge/aoc-2024-go/pkg/files"
@@ -64,17 +66,13 @@ func part2(name string) int {
 		lastCoord = coords[i]
 	}
 
-	max:=0
-
 	IsValid := func (i,j int) bool {
+		lastCoord = coords[len(coords)-1]
 		for k:=0; k<len(coords); k++ {
-			if k==i || k==j {
-				continue
+			if rectIntersection(coords[i],coords[j],coords[k], lastCoord) {
+				return false
 			}
-			if ints.IsBetween(coords[k][0], coords[i][0], coords[j][0]) &&
-				ints.IsBetween(coords[k][1], coords[i][1], coords[j][1]) {
-					return false
-				}
+			lastCoord = coords[k]
 		}
 
 		count:=0
@@ -95,52 +93,37 @@ func part2(name string) int {
 		}
 		if count %2 == 0 {
 			return false
-		}
-		
-		yInts :=ints.GetIntsBetween(coords[i][0], coords[j][0])
-		xInts :=ints.GetIntsBetween(coords[i][1],coords[j][1])
-
-		if len(yInts)>0 {
-			for _,x:= range xInts {
-				if grid[[2]int{yInts[0],x}] {
-					return false
-				}
-				if grid[[2]int{yInts[len(yInts)-1],x}] {
-					return false
-				}
-			}
-		}
-		
-		if len(xInts)>0 {
-			for _,y:= range yInts {
-			if grid[[2]int{y,xInts[0]}] {
-				return false
-			}
-			if grid[[2]int{y,xInts[len(xInts)-1]}] {
-				return false
-			}
-
-		}
-		}
-		
+		}		
 
 		return true
 	}
 
-	for i:=0;i<len(coords); i++ {
-		for j:=i+1; j<len(coords); j++ {
-			if IsValid(i,j) {
-				area:= (ints.Abs(coords[i][0] - coords[j][0])+1) *
-				 	(ints.Abs(coords[i][1] - coords[j][1])+1) 
-			
-				if area > max {
-					max = area
-				}
-			}
+	channel := make(chan int)
+
+	var wg sync.WaitGroup
+
+	getArea:= func (i,j int) {
+		defer wg.Done()
+		if IsValid(i,j) {
+			channel <- (ints.Abs(coords[i][0] - coords[j][0])+1) *
+				(ints.Abs(coords[i][1] - coords[j][1])+1)
 		}
 	}
 
-	return max
+	for i:=0;i<len(coords); i++ {
+		for j:=i+1; j<len(coords); j++ {
+			wg.Add(1)
+			go getArea(i,j)
+		}
+	}
+
+	// goroutine that closes channel after work is done
+	go func() {
+		wg.Wait()
+		close(channel)
+	}()
+
+	return MaxFromChan(channel)
 }
 
 func parseCoords(name string) ([][2]int, int, int) {
@@ -161,4 +144,31 @@ func parseCoords(name string) ([][2]int, int, int) {
 	}
 
 	return coords, maxY, maxX
+}
+
+func rectIntersection(a,b,c,d [2]int) bool {
+	topAB, bottomAB:= ints.MinMax([]int{a[0],b[0]})
+	topCD, bottomCD:= ints.MinMax([]int{c[0],d[0]})
+	if topAB >=bottomCD || topCD >= bottomAB {
+		return false
+	}
+
+	leftAB, rightAB:= ints.MinMax([]int{a[1],b[1]})
+	leftCD, rightCD:= ints.MinMax([]int{c[1],d[1]})
+	if leftAB >= rightCD || leftCD >= rightAB {
+		return false
+	}
+
+	return true
+}
+
+func MaxFromChan(ch <-chan int) int {
+    max := math.MinInt
+
+    for v := range ch {
+        if v > max {
+            max = v
+        }
+    }
+    return max
 }
