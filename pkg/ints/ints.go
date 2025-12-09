@@ -93,3 +93,33 @@ func Mod(x, d int) int {
   if x < 0 { return x + d }
   return x
 }
+
+func GetIntsBetween(a,b int) []int {
+	result:= []int{}
+
+	if a<b {
+		for i:= a+1; i<b; i++ {
+			result = append(result, i)
+		}
+	} else if b<a {
+		for i:=b+1; i<a; i++ {
+			result = append(result, i)
+		}
+	}
+	return result
+}
+
+func GetIntsBetweenInclusive(a,b int) []int {
+	result:= []int{}
+
+	if a<b {
+		for i:= a; i<=b; i++ {
+			result = append(result, i)
+		}
+	} else {
+		for i:=b; i<=a; i++ {
+			result = append(result, i)
+		}
+	}
+	return result
+}
