@@ -160,3 +160,11 @@ func IsBetween(a,b,c int) bool {
 
 	return false
 }
+
+func Factorial(a int) int {
+	total:=1
+	for i:=2; i<=a; i++ {
+		total*=i
+	}
+	return total
+}
