@@ -36,7 +36,6 @@ func part1(name string) int {
 				if val, ok := stateMap[string(newState.lights)]; !ok || val > newState.presses {
 					statesToAdd = append(statesToAdd, newState)
 				}
-
 			}
 
 			for _, state := range statesToAdd {
@@ -75,9 +74,14 @@ func solveMachine(machine machine) int {
 	zero:= ctx.Int(0, ctx.IntSort())
 	sum:= ctx.Int(0,ctx.IntSort())
 
-	for i:=0; i<len(machine.wiring); i++ {
+	for i := range machine.wiring {
+		//create a variable for each wire
 		xs[i] = ctx.Const(ctx.Symbol(fmt.Sprintf("x_%d", i)), ctx.IntSort())
+
+		//add variable to sum of all variables
 		sum = sum.Add(xs[i])
+
+		//variable non-negative
 		s.Assert(xs[i].Ge(zero))
 	}
 
@@ -89,12 +93,16 @@ func solveMachine(machine machine) int {
 				wires = append(wires, xs[j])
 			}
 		}
+
+		//sum of all wires affecting joltage index = joltage
 		s.Assert(zero.Add(wires...).Eq(ctx.Int(jolt,ctx.IntSort())))
 	}
 
 	
 	v:=s.Check()
 	total:= 0
+
+	//to find minimum solution, create a loop reducing the allowed sum each time, until the problem is unsolvable
 	for v== z3.True {
 		m:= s.Model()
 		total= 0
@@ -108,8 +116,7 @@ func solveMachine(machine machine) int {
 		v = s.Check()
 	}
 
-	
-
+	//return lowest valid solution
 	return total
 }
 
