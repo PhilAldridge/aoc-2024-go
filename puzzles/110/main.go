@@ -18,7 +18,7 @@ func main() {
 	fmt.Println("Part 1 answer: ", part1("input.txt"))
 	split := time.Now()
 	fmt.Println("Part 2 answer: ", part2("input.txt"))
-	
+
 	fmt.Println()
 	fmt.Println("Part 1: ", split.Sub(start))
 	fmt.Println("Part 2: ", time.Since(split))
@@ -26,22 +26,22 @@ func main() {
 
 func part1(name string) int {
 	machines := parseInput(name)
-	total:= 0
-	for _, machine:= range machines {
-		stateMap:= make(map[string]int)
-		baseState:= strings.Repeat(".",len(machine.lights))
+	total := 0
+	for _, machine := range machines {
+		stateMap := make(map[string]int)
+		baseState := strings.Repeat(".", len(machine.lights))
 		stateMap[baseState] = 0
-		for _, nextWiring:= range machine.wiring {
-			statesToAdd:= []lightState{}
-			for state, presses:= range stateMap {
-				newState:= getNextState(state, presses, nextWiring)
-				if val,ok:= stateMap[string(newState.lights)]; !ok || val > newState.presses {
+		for _, nextWiring := range machine.wiring {
+			statesToAdd := []lightState{}
+			for state, presses := range stateMap {
+				newState := getNextState(state, presses, nextWiring)
+				if val, ok := stateMap[string(newState.lights)]; !ok || val > newState.presses {
 					statesToAdd = append(statesToAdd, newState)
 				}
-				
+
 			}
 
-			for _, state:= range statesToAdd {
+			for _, state := range statesToAdd {
 				stateMap[string(state.lights)] = state.presses
 			}
 		}
@@ -53,9 +53,12 @@ func part1(name string) int {
 
 func part2(name string) int {
 	machines := parseInput(name)
-	wg:= &sync.WaitGroup{}
-	results:= make(chan int)
-	for _, machine:= range machines {
+	wg := &sync.WaitGroup{}
+	results := make(chan int)
+	for _, machine := range machines {
+		if machine.index != 103 {
+			continue
+		}
 		wg.Add(1)
 		go getPresses(machine, wg, results)
 	}
@@ -72,12 +75,13 @@ func part2(name string) int {
 func parseInput(name string) []machine {
 	var machines []machine
 
-	lines:= files.ReadLines(name)
-	for _,line:= range lines {
-		split:= strings.Split(line, " ")
+	lines := files.ReadLines(name)
+	for i, line := range lines {
+		split := strings.Split(line, " ")
 		machines = append(machines, machine{
-			lights: split[0][1:len(split[0])-1],
-			wiring: getWiring(split[1:len(split)-1]),
+			index:   i,
+			lights:  split[0][1 : len(split[0])-1],
+			wiring:  getWiring(split[1 : len(split)-1]),
 			joltage: parseBracketedInts(split[len(split)-1]),
 		})
 	}
@@ -86,7 +90,7 @@ func parseInput(name string) []machine {
 
 func getWiring(input []string) [][]int {
 	var wiring [][]int
-	for _, set:= range input {
+	for _, set := range input {
 		wiring = append(wiring, parseBracketedInts(set))
 	}
 
@@ -94,16 +98,16 @@ func getWiring(input []string) [][]int {
 }
 
 func parseBracketedInts(input string) []int {
-	split:= strings.Split(input[1:len(input)-1],",")
+	split := strings.Split(input[1:len(input)-1], ",")
 	return ints.FromStringSlice(split)
 }
 
 func getNextState(state string, presses int, wiring []int) lightState {
-	newState:= lightState{
-		lights: []byte(state),
-		presses: presses+1,
+	newState := lightState{
+		lights:  []byte(state),
+		presses: presses + 1,
 	}
-	for _,val:= range wiring {
+	for _, val := range wiring {
 		if newState.lights[val] == '.' {
 			newState.lights[val] = '#'
 		} else {
@@ -115,86 +119,105 @@ func getNextState(state string, presses int, wiring []int) lightState {
 
 func getPresses(machine machine, wg *sync.WaitGroup, channel chan int) {
 	defer wg.Done()
-	lights:= getSortedLights(machine)
+	lights := getSortedLights(machine)
 
-	buttonOrder:= []int{}
-	solutionsArray:= [][]int{}
+	buttonOrder := []int{}
+	solutionsArray := [][]int{}
 
-	combinationMap:= make(map[combinationParams][][]int)
+	combinationMap := make(map[combinationParams][][]int)
 
-	result:=math.MaxInt
+	result := math.MaxInt
 
-	for i,nextLight:= range lights {
+	for i, nextLight := range lights {
 		if i == 0 {
 			buttonOrder = nextLight.buttons
 			solutionsArray = getCombinations(combinationParams{
-				total: nextLight.joltage,
+				total:       nextLight.joltage,
 				buttonCount: len(nextLight.buttons),
 			}, combinationMap)
 			continue
 		}
 
 		nextSolutions := [][]int{}
-		buttonsLeft:= []int{}
+		buttonsLeft := []int{}
 
-		for _, button:= range nextLight.buttons {
-			if !slices.Contains(buttonOrder,button) {
+		for _, button := range nextLight.buttons {
+			if !slices.Contains(buttonOrder, button) {
 				buttonsLeft = append(buttonsLeft, button)
-			} 
+			}
 		}
 
-		for _,solution:= range solutionsArray {
-			total:= nextLight.joltage
+		for _, solution := range solutionsArray {
+			total := nextLight.joltage
 
-			for _, button:= range nextLight.buttons {
-				index:= slices.Index(buttonOrder, button)
+			for _, button := range nextLight.buttons {
+				index := slices.Index(buttonOrder, button)
 
 				if index != -1 {
 					total -= solution[index]
-				} 
+				}
 			}
 
-			presses:= ints.Sum(solution)
+			presses := ints.Sum(solution)
 
-			if total < 0 || (len(buttonsLeft) == 0 && total != 0 )|| presses >= result {
-				break
+			if total < 0 || (len(buttonsLeft) == 0 && total != 0) || presses >= result {
+				continue
 			}
 
 			combinations := getCombinations(combinationParams{
 				total: total, buttonCount: len(buttonsLeft),
 			}, combinationMap)
 
-			for _, combination:= range combinations {
-				nextSolution:= []int{}
+			for _, combination := range combinations {
+				nextSolution := []int{}
 				nextSolution = append(nextSolution, solution...)
 				nextSolution = append(nextSolution, combination...)
 				nextSolutions = append(nextSolutions, nextSolution)
 			}
 
-			
 		}
 
 		buttonOrder = append(buttonOrder, buttonsLeft...)
 		solutionsArray = nextSolutions
-		fmt.Println(solutionsArray)
+		// fmt.Println(nextLight.joltage)
+		// fmt.Println(buttonOrder)
+		// fmt.Println(solutionsArray)
+
+		// fmt.Println()
 	}
+
+	result = calculateMinimumSolution(solutionsArray, lights, buttonOrder)
+	fmt.Println(machine.index)
 	channel <- result
 }
 
+func calculateMinimumSolution(solutions [][]int, lights []light, buttonOrder []int) int {
+	min := math.MaxInt
+	for _, solution := range solutions {
+		presses := ints.Sum(solution)
+		if presses > min {
+			continue
+		}
+		min = presses
+	}
+
+	return min
+}
+
 type combinationParams struct {
-	total int
+	total       int
 	buttonCount int
 }
 
 func getCombinations(p combinationParams, combinationMap map[combinationParams][][]int) [][]int {
-	prevResult, ok:=combinationMap[p] 
+	prevResult, ok := combinationMap[p]
 
 	if ok {
 		return prevResult
 	}
-	
+
 	if p.total == 0 {
-		result:= make([]int, p.buttonCount)
+		result := make([]int, p.buttonCount)
 		combinationMap[p] = [][]int{result}
 		return [][]int{result}
 	}
@@ -206,14 +229,14 @@ func getCombinations(p combinationParams, combinationMap map[combinationParams][
 
 	var combinations [][]int
 
-	for i:=0; i<=p.total; i++ {
+	for i := 0; i <= p.total; i++ {
 		nextCombinations := getCombinations(combinationParams{
-			total: p.total - i,
-			buttonCount: p.buttonCount-1,
+			total:       p.total - i,
+			buttonCount: p.buttonCount - 1,
 		}, combinationMap)
 
-		for _,nextCombination:= range nextCombinations {
-			nextCombination = append([]int{i},nextCombination...)
+		for _, nextCombination := range nextCombinations {
+			nextCombination = append([]int{i}, nextCombination...)
 			combinations = append(combinations, nextCombination)
 		}
 	}
@@ -225,26 +248,26 @@ func getCombinations(p combinationParams, combinationMap map[combinationParams][
 func getSortedLights(machine machine) []light {
 	var lights []light
 
-	for lightIndex, joltage:= range machine.joltage {
-		nextLight:= light{
+	for lightIndex, joltage := range machine.joltage {
+		nextLight := light{
 			joltage: joltage,
 			buttons: []int{},
 		}
 
-		for buttonIndex, button:= range machine.wiring {
+		for buttonIndex, button := range machine.wiring {
 			if slices.Contains(button, lightIndex) {
 				nextLight.buttons = append(nextLight.buttons, buttonIndex)
 			}
-		} 
+		}
 
 		lights = append(lights, nextLight)
 	}
 
 	sort.Slice(lights, func(i, j int) bool {
-		a,b:= lights[i],lights[j]
+		a, b := lights[i], lights[j]
 
-		aPower:= ints.Pow(a.joltage,len(a.buttons)-1)/ints.Factorial(len(a.buttons)-1)
-		bPower:= ints.Pow(b.joltage,len(b.buttons)-1)/ints.Factorial(len(b.buttons)-1)
+		aPower := ints.Pow(a.joltage, len(a.buttons)-1) / ints.Factorial(len(a.buttons)-1)
+		bPower := ints.Pow(b.joltage, len(b.buttons)-1) / ints.Factorial(len(b.buttons)-1)
 
 		return aPower < bPower
 	})
@@ -258,26 +281,24 @@ type light struct {
 }
 
 type machine struct {
-	lights string
-	wiring [][]int
+	index   int
+	lights  string
+	wiring  [][]int
 	joltage []int
 }
 
 type lightState struct {
-	lights []byte
+	lights  []byte
 	presses int
 }
 
-
-
 func TotalFromChan(ch <-chan int) int {
-    total := 0
-	count:= 0
+	total := 0
 
-    for v := range ch {
-		count++
-		fmt.Println(count)
-        total += v
-    }
-    return total
+	for v := range ch {
+		total += v
+		fmt.Println(total)
+	}
+
+	return total
 }
