@@ -221,8 +221,14 @@ Part 2:  1.096943335s
 
 ### Day 10
 
+Part 1:  8.025764ms
+Part 2:  920.878543ms
 
 ### Day 11
 
 Part 1:  796.111µs
 Part 2:  1.256147ms
+
+### Day 12
+
+Part 1:  719.75µs (cheat!)
