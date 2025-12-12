@@ -27,9 +27,19 @@ func part1(name string) int {
 
 	for _,input:= range sections[len(sections)-1] {
 		grid := parseGrid(input)
-		if grid.x * grid.y >= ints.Sum(grid.presentIndices)*9 {
-			total++
+
+		// Cannot fit - not enough area
+		if grid.x * grid.y < ints.Sum(grid.presentIndices)*9 {
+			continue
 		}
+
+		// Must fit, even if you don't try rearranging squares
+		if (grid.x/3) * (grid.y/3) >= ints.Sum(grid.presentIndices) {
+			total++
+			continue
+		}
+
+		panic("TODO: figure out how fit presents")
 	}
 
 	return total
