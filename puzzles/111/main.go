@@ -22,10 +22,7 @@ func main() {
 func part1(name string) int {
 	input:= parseInput(name)
 
-	memo:= make(map[string]int)
-	memo["out"] = 1
-
-	return countPaths(input, "you", memo)
+	return wrappedCountPaths(input, "you", "out")
 }
 
 func part2(name string) int {

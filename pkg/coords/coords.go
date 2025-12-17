@@ -49,6 +49,19 @@ func (a Coord) GetAdjacent() [4]Coord {
 	}
 }
 
+func (a Coord) GetAdjacentIncludingDiagonals() [8]Coord {
+	return [8]Coord{
+		a.Up(1),
+		a.Down(1),
+		a.Left(1),
+		a.Right(1),
+		a.Up(1).Left(1),
+		a.Up(1).Right(1),
+		a.Down(1).Left(1),
+		a.Down(1).Right(1),
+	}
+}
+
 func MovementVector(a Coord, b Coord) Coord {
 	iVec := a.I - b.I
 	jVec := a.J - b.J

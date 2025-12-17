@@ -18,4 +18,8 @@
 
 .DS_Store
 
-input.txt
+*input*
+
+!template/*
+!ecTemplate/*
+!test-input*
