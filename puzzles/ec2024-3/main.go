@@ -6,6 +6,7 @@ import (
 
 	"github.com/PhilAldridge/aoc-2024-go/pkg/coords"
 	"github.com/PhilAldridge/aoc-2024-go/pkg/files"
+	"github.com/PhilAldridge/aoc-2024-go/pkg/ints"
 )
 
 func main() {
@@ -24,8 +25,6 @@ func main() {
 }
 
 func part1(name string) int {
-	total:= 0
-
 	mapping:= firstLevel(name)
 
 	i:=2
@@ -33,16 +32,10 @@ func part1(name string) int {
 		i++
 	}
 
-	for _,val := range mapping {
-		total += val
-	}
-
-	return total
+	return ints.SumMap(mapping)
 }
 
 func part2(name string) int {
-	total:= 0
-
 	mapping:= firstLevel(name)
 
 	i:=2
@@ -50,17 +43,11 @@ func part2(name string) int {
 		i++
 	}
 
-	for _,val := range mapping {
-		total += val
-	}
-
-	return total
+	return ints.SumMap(mapping)
 }
 
 
 func part3(name string) int {
-	total:= 0
-
 	mapping:= firstLevel(name)
 
 	i:=2
@@ -68,11 +55,7 @@ func part3(name string) int {
 		i++
 	}
 
-	for _,val := range mapping {
-		total += val
-	}
-
-	return total
+	return ints.SumMap(mapping)
 }
 
 func firstLevel(name string) map[coords.Coord]int {

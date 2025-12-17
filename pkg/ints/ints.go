@@ -57,6 +57,14 @@ func Max(numbers []int) int {
 	return m
 }
 
+func Mean(numbers []int) int {
+	m := 0
+	for _, num := range numbers {
+		m+=num
+	}
+	return m/len(numbers)
+}
+
 func MinMax(numbers []int) (int,int) {
 	m := numbers[0]
 	n := numbers[0]
@@ -166,5 +174,15 @@ func Factorial(a int) int {
 	for i:=2; i<=a; i++ {
 		total*=i
 	}
+	return total
+}
+
+func SumMap[T comparable](mapping map[T]int) int {
+	total:= 0
+
+	for _, val:= range mapping {
+		total += val
+	}
+
 	return total
 }
