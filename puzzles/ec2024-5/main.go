@@ -31,25 +31,7 @@ func part1(name string) int {
 	dancers:= parseInput(name)
 
 	for i:=0; i<10; i++ {
-		movingDancer := dancers[i%len(dancers)][0]
-		dancers[i%len(dancers)] = dancers[i%len(dancers)][1:]
-
-		lineIndex:= (i+1)%len(dancers)
-		quotient:= (movingDancer-1)/len(dancers[lineIndex])
-		remainder:= movingDancer % len(dancers[lineIndex])
-		if remainder == 0 {
-			remainder = len(dancers[lineIndex])
-		}
-
-		if quotient%2 == 0 {
-			dancers[lineIndex] = slices.Insert(dancers[lineIndex], remainder - 1, movingDancer)
-		} else {
-			dancers[lineIndex] = slices.Insert(dancers[lineIndex], len(dancers[lineIndex]) - remainder + 1, movingDancer)
-		}
-	}
-
-	for _,line:= range dancers {
-		total = total * 10 + line[0]
+		dancers, total = dance(dancers,i)
 	}
 
 	return total
@@ -62,28 +44,7 @@ func part2(name string) int {
 	
 	i:=0
 	for {
-		movingDancer := dancers[i%len(dancers)][0]
-		dancers[i%len(dancers)] = dancers[i%len(dancers)][1:]
-
-		lineIndex:= (i+1)%len(dancers)
-		quotient:= (movingDancer-1)/len(dancers[lineIndex])
-		remainder:= movingDancer % len(dancers[lineIndex])
-		if remainder == 0 {
-			remainder = len(dancers[lineIndex])
-		}
-
-		if quotient%2 == 0 {
-			dancers[lineIndex] = slices.Insert(dancers[lineIndex], remainder - 1, movingDancer)
-		} else {
-			dancers[lineIndex] = slices.Insert(dancers[lineIndex], len(dancers[lineIndex]) - remainder + 1, movingDancer)
-		}
-
-		total:= ""
-		for _,line:= range dancers {
-			total += strconv.Itoa(line[0])
-		}
-
-		totalVal= ints.FromString(total)
+		dancers, totalVal = dance(dancers,i)
 
 		shoutCount[totalVal] ++
 		i++
@@ -104,28 +65,7 @@ func part3(name string) int {
 	
 	i:=0
 	for {
-		movingDancer := dancers[i%len(dancers)][0]
-		dancers[i%len(dancers)] = dancers[i%len(dancers)][1:]
-
-		lineIndex:= (i+1)%len(dancers)
-		quotient:= (movingDancer-1)/len(dancers[lineIndex])
-		remainder:= movingDancer % len(dancers[lineIndex])
-		if remainder == 0 {
-			remainder = len(dancers[lineIndex])
-		}
-
-		if quotient%2 == 0 {
-			dancers[lineIndex] = slices.Insert(dancers[lineIndex], remainder - 1, movingDancer)
-		} else {
-			dancers[lineIndex] = slices.Insert(dancers[lineIndex], len(dancers[lineIndex]) - remainder + 1, movingDancer)
-		}
-
-		total:= ""
-		for _,line:= range dancers {
-			total += strconv.Itoa(line[0])
-		}
-
-		totalVal= ints.FromString(total)
+		dancers, totalVal = dance(dancers,i)
 
 		shoutCount[totalVal] ++
 		i++
@@ -163,4 +103,29 @@ func parseInput(name string) [][]int {
 	}
 
 	return result
+}
+
+func dance(dancers [][]int, index int) ([][]int, int) {
+	movingDancer := dancers[index%len(dancers)][0]
+	dancers[index%len(dancers)] = dancers[index%len(dancers)][1:]
+
+	lineIndex:= (index+1)%len(dancers)
+	quotient:= (movingDancer-1)/len(dancers[lineIndex])
+	remainder:= movingDancer % len(dancers[lineIndex])
+	if remainder == 0 {
+		remainder = len(dancers[lineIndex])
+	}
+
+	if quotient%2 == 0 {
+		dancers[lineIndex] = slices.Insert(dancers[lineIndex], remainder - 1, movingDancer)
+	} else {
+		dancers[lineIndex] = slices.Insert(dancers[lineIndex], len(dancers[lineIndex]) - remainder + 1, movingDancer)
+	}
+
+	total:= ""
+	for _,line:= range dancers {
+		total += strconv.Itoa(line[0])
+	}
+
+	return dancers, ints.FromString(total)
 }
