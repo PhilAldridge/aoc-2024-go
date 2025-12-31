@@ -16,6 +16,21 @@ func ReadLines(name string) []string {
 	return readLines(name, callingFile)
 }
 
+// ReadLines reads a file and returns a slice of strings, one for each line
+func ReadLinesAsRunes(name string) [][]rune {
+	_, callingFile, _, ok := runtime.Caller(1)
+	if !ok {
+		panic("unable to find caller so cannot build path to read file")
+	}
+	lines:= readLines(name, callingFile)
+	result:= make([][]rune, len(lines))
+	for i,line:= range lines {
+		result[i] = []rune(line)
+	}
+
+	return result
+}
+
 // Read reads a file and returns a string containing the entire file
 func Read(name string) string {
 	_, callingFile, _, ok := runtime.Caller(1)

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/PhilAldridge/aoc-2024-go/pkg/files"
+	"github.com/PhilAldridge/aoc-2024-go/pkg/sets"
 )
 
 func main() {
@@ -44,7 +45,110 @@ func part2(name string) int {
 }
 
 func part3(name string) int {
-	total := 0
+	lines := files.ReadLinesAsRunes(name)
+	offsets := []int{0, 1, 6, 7}
+
+	var total int
+
+	changesMade := true
+
+	//loop until no changes to lines made
+	for changesMade {
+		changesMade = false
+		total = 0
+		for i, row := range lines {
+			for j, char := range row {
+
+				//Start of block to check
+				if char == '*' && i+7 < len(lines) && j+7 < len(lines[i+1]) && lines[i+1][j+1] == '*' {
+					word := 0
+					complete := true
+
+					//Loop through middle of block
+					for i2 := 2; i2 < 6; i2++ {
+						for j2 := 2; j2 < 6; j2++ {
+							//Map of runes on edge of block for that row/column
+							rowSet := sets.NewSet[rune]()
+							columnSet := sets.NewSet[rune]()
+
+							for _, offset := range offsets {
+								rowSet.Add(lines[i+i2][j+offset])
+								columnSet.Add(lines[i+offset][j+j2])
+							}
+
+							//Already filled in
+							if lines[i+i2][j+j2] != '.' {
+								word += (j2 - 1 + 4*(i2-2)) * (int(lines[i+i2][j+j2]-'A') + 1)
+
+								//Use filled in value to complete row
+								if rowSet.Contains('?') && !columnSet.Contains('?') && !rowSet.Contains(lines[i+i2][j+j2]) {
+									for _, offset:= range offsets {
+										if lines[i+i2][j+offset] == '?' {
+											lines[i+i2][j+offset] = lines[i+i2][j+j2]
+											break
+										}
+									}
+									changesMade = true
+									continue
+								}
+
+								//Use filled in value to complete column
+								if columnSet.Contains('?') && !rowSet.Contains('?') && !columnSet.Contains(lines[i+i2][j+j2]) {									
+									for _, offset:= range offsets {
+										if lines[i+offset][j+j2] == '?' {
+											lines[i+offset][j+j2] = lines[i+i2][j+j2]
+											break
+										}
+									}
+									changesMade = true
+									continue
+								}
+
+								continue
+							}
+
+							complete = false
+
+							intersection := sets.Intersection(rowSet, columnSet)
+
+							//No ? marks and one answer == fill it in
+							if intersection.Size() == 1 && intersection.List()[0] != '?' {
+								lines[i+i2][j+j2] = intersection.List()[0]
+								changesMade = true
+								continue
+							}
+
+							//All but one value in column already used == fill in that value
+							for i3 := 2; i3 < 6; i3++ {
+								columnSet.Remove(lines[i+i3][j+j2])
+							}
+
+							if !columnSet.Contains('?') && columnSet.Size() == 1 {
+								lines[i+i2][j+j2] = columnSet.List()[0]
+								changesMade = true
+								continue
+							}
+
+							//All but one value in row already used == fill in that value
+							for j3 := 2; j3 < 6; j3++ {
+								rowSet.Remove(lines[i+i2][j+j3])
+							}
+
+							if !rowSet.Contains('?') && rowSet.Size() == 1 {
+								lines[i+i2][j+j2] = rowSet.List()[0]
+								changesMade = true
+								continue
+							}
+						}
+					}
+
+					if complete {
+						total += word
+					}
+				}
+			}
+		}
+	}
 
 	return total
 }

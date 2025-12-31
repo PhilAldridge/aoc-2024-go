@@ -1,6 +1,8 @@
 package sets
 
-import "slices"
+import (
+	"slices"
+)
 
 // Set is a collection of unique elements
 type Set[T comparable] struct {
@@ -57,4 +59,18 @@ func (s *Set[T]) IntersectSlice(values []T) {
             s.Remove(key)
         }
     }
+}
+
+func Intersection[T comparable](setA *Set[T], setB *Set[T]) *Set[T] {
+    result:= NewSet[T]()
+
+    a:= setA.List()
+
+    for _, item:= range a {
+        if setB.Contains(item) {
+            result.Add(item)
+        }
+    }
+
+    return result
 }
