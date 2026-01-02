@@ -186,3 +186,21 @@ func SumMap[T comparable](mapping map[T]int) int {
 
 	return total
 }
+
+func ModularDifference(a,b,mod int) int {
+	try1:= a-b
+	if try1 < 0 {
+		try1 +=mod
+	}
+
+	try2:=b-a
+	if try2 < 0 {
+		try2 += mod
+	}
+
+	if try1 < try2 {
+		return try1
+	}
+
+	return try2
+}

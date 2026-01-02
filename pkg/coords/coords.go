@@ -135,23 +135,23 @@ func dotProduct(a Coord, b Coord) int {
 	return a.I*b.I + a.J*b.J
 }
 
-func NewLine (m Coord, c Coord) Line {
+func NewLine(m Coord, c Coord) Line {
 	return Line{
 		M: m,
 		C: c,
 	}
 }
 
-func (a Coord) Multiply (lambda int) Coord {
+func (a Coord) Multiply(lambda int) Coord {
 	return Coord{
-		I: a.I*lambda,
-		J: a.J*lambda,
+		I: a.I * lambda,
+		J: a.J * lambda,
 	}
 }
 
-func CoordInSlice (c Coord, sl []Coord) bool {
-	for _,s:= range sl {
-		if c.I==s.I && c.J == s.J {
+func CoordInSlice(c Coord, sl []Coord) bool {
+	for _, s := range sl {
+		if c.I == s.I && c.J == s.J {
 			return true
 		}
 	}
@@ -159,14 +159,14 @@ func CoordInSlice (c Coord, sl []Coord) bool {
 }
 
 var DirectionsInOrder = [4]Coord{
-	NewCoord(0,1),
-	NewCoord(-1,0),
-	NewCoord(0,-1),
-	NewCoord(1,0),
+	NewCoord(0, 1),
+	NewCoord(-1, 0),
+	NewCoord(0, -1),
+	NewCoord(1, 0),
 }
 
 func TurnLeft(a Coord) Coord {
-	for i,v := range DirectionsInOrder {
+	for i, v := range DirectionsInOrder {
 		if v.IsSameDirectionAs(a) {
 			return DirectionsInOrder[(i+1)%4]
 		}
@@ -175,7 +175,7 @@ func TurnLeft(a Coord) Coord {
 }
 
 func TurnRight(a Coord) Coord {
-	for i,v := range DirectionsInOrder {
+	for i, v := range DirectionsInOrder {
 		if v.IsSameDirectionAs(a) {
 			return DirectionsInOrder[(i+3)%4]
 		}
@@ -184,7 +184,7 @@ func TurnRight(a Coord) Coord {
 }
 
 func TurnBack(a Coord) Coord {
-	for i,v := range DirectionsInOrder {
+	for i, v := range DirectionsInOrder {
 		if v.IsSameDirectionAs(a) {
 			return DirectionsInOrder[(i+2)%4]
 		}
@@ -193,17 +193,24 @@ func TurnBack(a Coord) Coord {
 }
 
 func ManhattanDistance(a Coord, b Coord) int {
-	x:= a.J-b.J
-	y:= a.I-b.I
-	if x<0{
-		x*=-1
+	x := a.J - b.J
+	y := a.I - b.I
+	if x < 0 {
+		x *= -1
 	}
-	if y<0{
-		y*=-1
+	if y < 0 {
+		y *= -1
 	}
-	return x+y
+	return x + y
 }
 
-func (a Coord) Equals (b Coord) bool {
+func (a Coord) Equals(b Coord) bool {
 	return a.I == b.I && a.J == b.J
+}
+
+func (a Coord) InInput(input []string) bool {
+	if a.I < 0 || a.J < 0 || a.I >= len(input) || a.J >= len(input[0]) {
+		return false
+	}
+	return true
 }
