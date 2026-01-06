@@ -52,65 +52,39 @@ func part1(name string) string {
 func part2(name string) string {
 	maze, key := parseInput(name)
 
+	rounds:=100
+
 	width := len(maze[0])
 	height := len(maze)
-	for range 100 {
-		index := 0
 
-		for i, row := range maze {
-			for j := range row {
-				pos := coords.NewCoord(i, j)
-				if len(getNeighbours(pos, width, height)) != 8 {
-					continue
-				}
+	changeMap := getRoundChangeMap(height, width, key)
 
-				if key[index] == 'L' {
-					maze = rotateLeft(maze, pos)
-				} else {
-					maze = rotateRight(maze, pos)
-				}
-				index = (index + 1) % len(key)
-			}
-		}
-	}
+	doubleUp(changeMap, rounds)
 
-	return getDecodedString(maze)
+	finalMaze:= mapToFinalPosition(maze,changeMap,rounds)
+
+	return getDecodedString(finalMaze)
 }
 
 func part3(name string) string {
 	maze, key := parseInput(name)
+	rounds := 1048576000
 
 	width := len(maze[0])
 	height := len(maze)
-	for range 1048576000 {
-		index := 0
 
-		for i, row := range maze {
-			for j := range row {
-				pos := coords.NewCoord(i, j)
-				if len(getNeighbours(pos, width, height)) != 8 {
-					continue
-				}
+	changeMap := getRoundChangeMap(height, width, key)
 
-				if key[index] == 'L' {
-					maze = rotateLeft(maze, pos)
-				} else {
-					maze = rotateRight(maze, pos)
-				}
-				index = (index + 1) % len(key)
-			}
-		}
+	doubleUp(changeMap, rounds)
 
-		answer, ok:= checkDecodedString(maze)
-		if ok {
-			return answer
-		}
-	}
+	finalMaze:= mapToFinalPosition(maze,changeMap,rounds)
 
-	return getDecodedString(maze)
+	printMaze(finalMaze)
+
+	return getDecodedString(finalMaze)
 }
 
-func rotateRight(maze [][]rune, locus coords.Coord) [][]rune {
+func rotateRight[T any](maze [][]T, locus coords.Coord) [][]T {
 	neighbours := getNeighbours(locus, len(maze[0]), len(maze))
 	prevPos := neighbours[len(neighbours)-1]
 	prevChar := maze[prevPos.I][prevPos.J]
@@ -124,7 +98,7 @@ func rotateRight(maze [][]rune, locus coords.Coord) [][]rune {
 	return maze
 }
 
-func rotateLeft(maze [][]rune, locus coords.Coord) [][]rune {
+func rotateLeft[T any](maze [][]T, locus coords.Coord) [][]T {
 	neighbours := getNeighbours(locus, len(maze[0]), len(maze))
 	prevPos := neighbours[0]
 	prevChar := maze[prevPos.I][prevPos.J]
@@ -195,32 +169,129 @@ func getDecodedString(maze [][]rune) string {
 	panic("output incorrect")
 }
 
-func checkDecodedString(maze [][]rune) (string,bool) {
-	answer := ""
+type state struct {
+	position coords.Coord
+	rounds   int
+}
 
-	for _, row := range maze {
-		startFound := false
-		for _, char := range row {
-			if !startFound {
-				if char == '>' {
-					startFound = true
-				}
+type stateToAdd struct {
+	state
+	newPosition coords.Coord
+}
+
+func getRoundChangeMap(height, width int, key []rune) map[state]coords.Coord {
+	answer := make(map[state]coords.Coord)
+
+	coordMaze := make([][]coords.Coord, height)
+
+	for i := range height {
+		coordMaze[i] = make([]coords.Coord, width)
+		for j := range width {
+			coordMaze[i][j] = coords.NewCoord(i, j)
+		}
+	}
+
+	index := 0
+	for i := range height {
+		for j := range width {
+			pos := coords.NewCoord(i, j)
+			if len(getNeighbours(pos, width, height)) != 8 {
 				continue
 			}
 
-			if char == '<' {
-				return answer,true
+			if key[index] == 'L' {
+				coordMaze = rotateLeft(coordMaze, pos)
+			} else {
+				coordMaze = rotateRight(coordMaze, pos)
 			}
-
-			if char < '0' || char > '9' {
-				return "", false
-			}
-
-			answer += string(char)
-		}
-		if startFound {
-			break
+			index = (index + 1) % len(key)
 		}
 	}
-	return "",false
+
+	for i := range height {
+		for j := range width {
+			answer[state{position: coordMaze[i][j], rounds: 1}] = coords.NewCoord(i, j)
+		}
+	}
+
+	return answer
+}
+
+func doubleUp(changeMap map[state]coords.Coord, rounds int) {
+	statesToCheck := []stateToAdd{}
+	power:=1
+
+	for k, v := range changeMap {
+		statesToCheck = append(statesToCheck, stateToAdd{
+			state:       k,
+			newPosition: v,
+		})
+	}
+
+	for rounds%2 ==0 {
+		toAdd := []stateToAdd{}
+		rounds /=2
+		for _, stateToCheck := range statesToCheck {
+			toAdd = append(toAdd, stateToAdd{
+				state: state{
+					position: stateToCheck.state.position,
+					rounds:   power * 2,
+				},
+				newPosition: changeMap[state{position: stateToCheck.newPosition, rounds: power}],
+			})
+		}
+
+		for _, newState := range toAdd {
+			changeMap[newState.state] = newState.newPosition
+		}
+		power *=2
+		statesToCheck = toAdd
+	}
+
+	for rounds%5 == 0 {
+		toAdd := []stateToAdd{}
+		rounds /=5
+		for _, stateToCheck := range statesToCheck {
+			position := coords.NewCoord(stateToCheck.state.position.I,stateToCheck.state.position.J)
+			for range 5 {
+				position = changeMap[state{
+					position: position,
+					rounds: power,
+				}]
+			}
+			toAdd = append(toAdd, stateToAdd{
+				state: state{
+					position: stateToCheck.state.position,
+					rounds: power * 5,
+				},
+				newPosition: position,
+			})
+		}
+
+		for _, newState := range toAdd {
+			changeMap[newState.state] = newState.newPosition
+		}
+		power *=5
+		statesToCheck = toAdd
+	}
+}
+
+func mapToFinalPosition(maze [][]rune, changeMap map[state]coords.Coord, rounds int) [][]rune {
+	width := len(maze[0])
+	height := len(maze)
+
+	finalMaze:= make([][]rune,height)
+	for i:=range height {
+		finalMaze[i] = make([]rune, width)
+	}
+
+	for i:=range height {
+		for j:= range width {
+			position := changeMap[state{position: coords.NewCoord(i,j), rounds: rounds}]
+
+			finalMaze[position.I][position.J] = maze[i][j]
+		}
+	}
+
+	return finalMaze
 }
