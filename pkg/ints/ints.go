@@ -120,6 +120,16 @@ func GCD(a, b int) int {
 	return a
 }
 
+func LCM(a,b int) int {
+	if a< 0 {
+		a *= -1
+	}
+	if b<0 {
+		b *= -1
+	}
+	return (a*b)/GCD(a,b)
+}
+
 func Mod(x, d int) int {
   if d < 0 { d = -d }
   x = x % d
