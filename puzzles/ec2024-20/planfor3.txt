@@ -1,0 +1,4 @@
+1. Assume going north is pointless. Also assume that the middle part is in a stable rhythm
+2. Get best plan for n sections
+3. Get altitude loss on last section, use this for lots of sections, but allow for n sections at the end
+4. Get best plan for remaining altitude

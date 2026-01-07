@@ -49,6 +49,10 @@ func (a Coord) GetAdjacent() [4]Coord {
 	}
 }
 
+func (a Coord) IsOposite(b Coord) bool {
+	return a.I == -b.I && a.J == -b.J
+}
+
 func (a Coord) GetAdjacentIncludingDiagonals() [8]Coord {
 	return [8]Coord{
 		a.Up(1),
