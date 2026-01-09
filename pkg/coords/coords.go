@@ -218,3 +218,16 @@ func (a Coord) InInput(input []string) bool {
 	}
 	return true
 }
+
+func (a Coord) GetKnightMoves() []Coord {
+	return []Coord{
+		a.Add(NewCoord(1,2)),
+		a.Add(NewCoord(1,-2)),
+		a.Add(NewCoord(-1,2)),
+		a.Add(NewCoord(-1,-2)),
+		a.Add(NewCoord(2,1)),
+		a.Add(NewCoord(2,-1)),
+		a.Add(NewCoord(-2,1)),
+		a.Add(NewCoord(-2,-1)),
+	}
+}
