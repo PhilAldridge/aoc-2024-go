@@ -66,6 +66,15 @@ func (a Coord) GetAdjacentIncludingDiagonals() [8]Coord {
 	}
 }
 
+func (a Coord) GetAdjacentDiagonals() [4]Coord {
+	return [4]Coord{
+		a.Up(1).Right(1),
+		a.Down(1).Right(1),
+		a.Down(1).Left(1),
+		a.Up(1).Left(1),
+	}
+}
+
 func MovementVector(a Coord, b Coord) Coord {
 	iVec := a.I - b.I
 	jVec := a.J - b.J
@@ -171,7 +180,7 @@ var DirectionsInOrder = [4]Coord{
 
 func TurnLeft(a Coord) Coord {
 	for i, v := range DirectionsInOrder {
-		if v.IsSameDirectionAs(a) {
+		if v.Equals(a) {
 			return DirectionsInOrder[(i+1)%4]
 		}
 	}
@@ -180,7 +189,7 @@ func TurnLeft(a Coord) Coord {
 
 func TurnRight(a Coord) Coord {
 	for i, v := range DirectionsInOrder {
-		if v.IsSameDirectionAs(a) {
+		if v.Equals(a) {
 			return DirectionsInOrder[(i+3)%4]
 		}
 	}
@@ -214,6 +223,24 @@ func (a Coord) Equals(b Coord) bool {
 
 func (a Coord) InInput(input []string) bool {
 	if a.I < 0 || a.J < 0 || a.I >= len(input) || a.J >= len(input[0]) {
+		return false
+	}
+	return true
+}
+
+type Lenable interface {
+	~string |
+	~[]byte |
+	~[]bool |
+	~[]rune |
+	~[]int |
+	~[]any |
+	~map[string]int |
+	~map[string]string
+}
+
+func GenericInInput[T Lenable](a Coord, input []T) bool {
+		if a.I < 0 || a.J < 0 || a.I >= len(input) || a.J >= len(input[0]) {
 		return false
 	}
 	return true
