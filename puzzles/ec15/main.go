@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -24,45 +25,82 @@ func main() {
 	fmt.Println("Part 2: ", time.Since(split2))
 }
 
+type queueType struct {
+	position coords.Coord
+	time int
+}
+
 func part1(name string) int {
 	input := strings.Split(files.Read(name), ",")
-	wallMap, up, down, left, right, endPosition := produceMap(input)
+	lines, endPosition:= getLines(input)
+	yMap, xMap:= getImportantYandXvals(lines)
 	startPosition := coords.NewCoord(0, 0)
 	visitedMap := map[coords.Coord]int{startPosition: 0}
 
-	queue := []coords.Coord{startPosition}
+	queue := []queueType{{position: startPosition, time:0}}
 
 	for len(queue) > 0 {
 		next := queue[0]
 		queue = queue[1:]
 
-		time := visitedMap[next]
+		time := visitedMap[next.position]
 
-		for _, direction := range coords.DirectionsInOrder {
-			newPosition:= next.Add(direction)
+		for yVal:= range yMap {
+			if yVal == next.position.I {
+				continue
+			}
+
+			newPosition:= coords.NewCoord(yVal,next.position.J)
+			newTime:= time + ints.Abs(yVal-next.position.I)
+
+			if score,ok:= visitedMap[newPosition]; ok && newTime>=score {
+				continue
+			}
+
+			if hitsAWall([2]coords.Coord{next.position,newPosition},lines) {
+				continue
+			}
+
+			visitedMap[newPosition] = newTime
+
 			if newPosition.Equals(endPosition) {
-				return time+1
-			}
-
-			if newPosition.I < up || newPosition.I > down || newPosition.J < left || newPosition.J > right {
 				continue
 			}
 
-			if wallMap[newPosition] {
-				continue
-			}
-
-			if _, ok := visitedMap[newPosition]; ok {
-				continue
-			}
-
-			visitedMap[newPosition] = time+1
-			queue = append(queue, newPosition)
+			queue = append(queue, queueType{position: newPosition, time: newTime})
 		}
 
+		for xVal:= range xMap {
+			if xVal == next.position.J {
+				continue
+			}
+
+			newPosition:= coords.NewCoord(next.position.I,xVal)
+			newTime:= time + ints.Abs(xVal-next.position.J)
+
+			if score,ok:= visitedMap[newPosition]; ok && newTime>=score {
+				continue
+			}
+
+			if hitsAWall([2]coords.Coord{next.position,newPosition},lines) {
+				continue
+			}
+
+			visitedMap[newPosition] = newTime
+
+			if newPosition.Equals(endPosition) {
+				continue
+			}
+
+			queue = append(queue, queueType{position: newPosition, time: newTime})
+		}
+
+		slices.SortFunc(queue, func(a,b queueType) int {
+			return a.time - b.time
+		})
 	}
 
-	panic("exit not found!")
+	return visitedMap[endPosition]
 }
 
 func part2(name string) int {
@@ -73,14 +111,14 @@ func part3(name string) int {
 	return part1(name)
 }
 
-func produceMap(input []string) (map[coords.Coord]bool, int, int, int, int, coords.Coord) {
-	left, right, up, down := 0, 0, 0, 0
+func getLines(input []string) ([][2]coords.Coord, coords.Coord) {
 	startPosition := coords.NewCoord(0, 0)
 	currentPosition := startPosition
 	currentDirection := coords.NewCoord(-1, 0)
-	wallMap := make(map[coords.Coord]bool)
+	var endPosition coords.Coord
+	lines := [][2]coords.Coord{}
 
-	for _, instruction := range input {
+	for i, instruction := range input {
 		switch instruction[0] {
 		case 'L':
 			currentDirection = coords.TurnLeft(currentDirection)
@@ -88,29 +126,71 @@ func produceMap(input []string) (map[coords.Coord]bool, int, int, int, int, coor
 			currentDirection = coords.TurnRight(currentDirection)
 		}
 
-		for range ints.FromString(instruction[1:]) {
+		newPosition:= currentPosition.MoveBy(currentDirection, ints.FromString(instruction[1:]))
+
+		if i==0 {
 			currentPosition = currentPosition.Add(currentDirection)
-			wallMap[currentPosition] = true
 		}
 
-		if currentPosition.I < up {
-			up = currentPosition.I
+		if i==len(input)-1 {
+			endPosition = newPosition
+			newPosition = newPosition.Add(coords.TurnBack(currentDirection))
 		}
 
-		if currentPosition.I > down {
-			down = currentPosition.I
-		}
+		lines = append(lines, [2]coords.Coord{currentPosition,newPosition})
 
-		if currentPosition.J < left {
-			left = currentPosition.J
-		}
+		currentPosition = newPosition
+	}
 
-		if currentPosition.J > right {
-			right = currentPosition.J
+	return lines, endPosition
+}
+
+func getImportantYandXvals(lines [][2]coords.Coord) (map[int]bool, map[int]bool) {
+	yMap, xMap:= make(map[int]bool), make(map[int]bool)
+
+	for _,line:= range lines {
+		for i:= -1; i<=1; i++ {
+			yMap[line[0].I+i] = true
+			yMap[line[1].I+i] = true
+			xMap[line[0].J+i] = true
+			xMap[line[1].J+i] = true
 		}
 	}
 
-	delete(wallMap, currentPosition)
+	return yMap,xMap
+}
 
-	return wallMap, up, down, left, right, currentPosition
+func hitsAWall(line [2]coords.Coord, walls [][2]coords.Coord) bool {
+	for _, wall:= range walls {
+		if segmentsIntersect(line, wall) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func segmentsIntersect(a,b [2]coords.Coord) bool {
+	aTop, aBottom:= ints.MinMax([]int{a[0].I,a[1].I})
+	aLeft, aRight:= ints.MinMax([]int{a[0].J,a[1].J})
+	bTop, bBottom:= ints.MinMax([]int{b[0].I,b[1].I})
+	bLeft, bRight:= ints.MinMax([]int{b[0].J,b[1].J})
+
+	if aTop<bTop && aBottom<bTop {
+		return false
+	}
+
+	if aBottom>bBottom && aTop>bBottom {
+		return false
+	}
+
+	if aLeft<bLeft && aRight<bLeft {
+		return false
+	}
+
+	if aRight>bRight && aLeft>bRight {
+		return false
+	}
+
+	return true
 }
