@@ -113,27 +113,20 @@ func part3(name string) int {
 		queue[0]: 0,
 	}
 
+	directions:= []coords.Coord{
+		coords.NewCoord(0,1),
+		coords.NewCoord(0,0),
+		coords.NewCoord(0,-1),
+		coords.NewCoord(-1,0),
+		coords.NewCoord(1,0),
+	}
+
 	for len(queue) > 0 {
 		next := queue[0]
 		queue = queue[1:]
 		score := visitedMap[next]
 
-		newState := state{
-			position: next.position,
-			phase:    (next.phase + 1) % 3,
-		}
-
-		if _, ok := visitedMap[newState]; !ok &&
-		(grids[newState.phase][next.position.I][next.position.J] == 'E' || grids[newState.phase][next.position.I][next.position.J] == 'T') {
-			visitedMap[newState] = score + 1
-			queue = append(queue, newState)
-		}
-
-		if grids[newState.phase][next.position.I][next.position.J] == 'E' {
-			return score + 1
-		}
-
-		for _, direction := range coords.DirectionsInOrder {
+		for _, direction := range directions {
 			newPos := next.position.Add(direction)
 			newState := state{
 				position: newPos,
