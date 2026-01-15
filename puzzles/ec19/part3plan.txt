@@ -1,0 +1,8 @@
+parseinput as []struct{x int, gaps []int} where gaps are inclusive y values in all gaps
+for each gap.
+    for each coord in gap
+        calc least flaps based on least flaps to previous gap
+
+
+Calculation plan:
+queue = slice of lastGapFlaps

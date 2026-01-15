@@ -1,0 +1,5 @@
+get map of available steps for each radius
+do queue thing for each radius with slight variation
+ - time <= radius*30
+ - when returning to s - only counts if there is a coordinate directly left, below and right of volcano
+first time s is in visitedMap is the answer.

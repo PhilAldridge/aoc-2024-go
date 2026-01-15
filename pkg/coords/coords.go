@@ -217,6 +217,13 @@ func ManhattanDistance(a Coord, b Coord) int {
 	return x + y
 }
 
+func PythagoreanSquareDistance(a,b Coord) int {
+	iDiff:= a.I-b.I
+	jDiff:= a.J-b.J
+
+	return iDiff*iDiff + jDiff*jDiff
+}
+
 func (a Coord) Equals(b Coord) bool {
 	return a.I == b.I && a.J == b.J
 }
