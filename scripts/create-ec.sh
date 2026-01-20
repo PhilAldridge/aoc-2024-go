@@ -15,10 +15,10 @@ TARGET_DIR="./puzzles/ec$1"
 # Create the folder if it doesn't exist
 if [ -d "$TARGET_DIR" ]; then
   echo "Folder '$TARGET_DIR' already exists."
+  exit 1
 else
   mkdir -p "$TARGET_DIR"
   echo "Created folder: $TARGET_DIR"
-  exit 1
 fi
 
 # Copy files
