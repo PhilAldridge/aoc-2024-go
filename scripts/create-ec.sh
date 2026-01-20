@@ -18,6 +18,7 @@ if [ -d "$TARGET_DIR" ]; then
 else
   mkdir -p "$TARGET_DIR"
   echo "Created folder: $TARGET_DIR"
+  exit 1
 fi
 
 # Copy files
