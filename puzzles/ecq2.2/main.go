@@ -45,37 +45,53 @@ func part1(name string) int {
 }
 
 func part2(name string) int {
-	
-	balloons:= strings.Repeat(files.Read(name), 100)
-	return countPops(balloons,0)
+
+	balloons := strings.Repeat(files.Read(name), 100)
+	return countPops(balloons, 0)
 }
 
 func part3(name string) int {
-	
-	balloons:= strings.Repeat(files.Read(name), 100)
-	return countPops(balloons,0)
+
+	balloons := strings.Repeat(files.Read(name), 100000)
+	return countPops(balloons, 0)
 }
 
 func countPops(balloons string, startIndex int) int {
-	if len(balloons) <= 1 {
+	if len(balloons) <=1 {
 		return len(balloons)
 	}
 
-	boltOrder := []byte{'R', 'G', 'B'}
+	balloonsLeft := []byte{}
 
-	balloonsFirstHalf:= balloons[:len(balloons)/2]
-	balloonsSecondHalf:=balloons[len(balloons)/2:]
+	halfIndex := (len(balloons) + 1) / 2
+	boltIndex := startIndex
+	bolts := []byte{'R', 'G', 'B'}
 
-	index := 0
-	for index<len(balloonsFirstHalf) {
-		boltColour := boltOrder[(index+startIndex)%len(boltOrder)]
+	secondHalfDoubleIndex := len(balloons)
 
-		if  balloonsFirstHalf[index] == boltColour {
-			balloonsSecondHalf = balloonsSecondHalf[1:]
+	for i := 0; i < halfIndex; i++ {
+		if secondHalfDoubleIndex%2 != 0 {
+			secondHalfDoubleIndex++
+			boltIndex = (boltIndex + 1) % 3
+			continue
 		}
 
-		index++
+		if balloons[i] == bolts[boltIndex] {
+			secondHalfDoubleIndex += 2
+			boltIndex = (boltIndex + 1) % 3
+			continue
+		}
+
+		balloonsLeft = append(balloonsLeft, balloons[secondHalfDoubleIndex/2])
+		secondHalfDoubleIndex++
+		boltIndex = (boltIndex + 1) % 3
 	}
 
-	return len(balloonsFirstHalf) + countPops(balloonsSecondHalf, index%len(boltOrder))
+	remaining:= string(balloonsLeft)
+	finalIndex:= (secondHalfDoubleIndex+1)/2
+	if finalIndex < len(balloons) {
+		remaining += balloons[finalIndex:]
+	}
+
+	return halfIndex + countPops(remaining, boltIndex)
 }
