@@ -25,12 +25,12 @@ func main() {
 }
 
 func part1(name string) string {
-	input:= files.ReadLines(name)
+	input := files.ReadLines(name)
 
 	var leftTree, rightTree *treeNode
 
-	for i,row:= range input {
-		nodes, swap:= parseRow(row)
+	for i, row := range input {
+		nodes, swap := parseRow(row)
 
 		if i == 0 {
 			leftTree = &nodes[0]
@@ -38,13 +38,13 @@ func part1(name string) string {
 			continue
 		}
 
-		if swap !=0 {
-			leftTree,rightTree = swapNodes(leftTree, rightTree, int(swap),true)
+		if swap != 0 {
+			leftTree, rightTree = swapNodes(leftTree, rightTree, int(swap), true)
 			continue
 		}
 
-		placeNewNode(nodes[0],leftTree)
-		placeNewNode(nodes[1],rightTree)
+		placeNewNode(nodes[0], leftTree)
+		placeNewNode(nodes[1], rightTree)
 	}
 
 	return parseTreeString(leftTree) + parseTreeString(rightTree)
@@ -55,12 +55,12 @@ func part2(name string) string {
 }
 
 func part3(name string) string {
-	input:= files.ReadLines(name)
+	input := files.ReadLines(name)
 
 	var leftTree, rightTree *treeNode
 
-	for i,row:= range input {
-		nodes, swap:= parseRow(row)
+	for i, row := range input {
+		nodes, swap := parseRow(row)
 
 		if i == 0 {
 			leftTree = &nodes[0]
@@ -68,13 +68,13 @@ func part3(name string) string {
 			continue
 		}
 
-		if swap !=0 {
-			leftTree,rightTree = swapNodes(leftTree, rightTree, int(swap),false)
+		if swap != 0 {
+			leftTree, rightTree = swapNodes(leftTree, rightTree, int(swap), false)
 			continue
 		}
 
-		placeNewNode(nodes[0],leftTree)
-		placeNewNode(nodes[1],rightTree)
+		placeNewNode(nodes[0], leftTree)
+		placeNewNode(nodes[1], rightTree)
 	}
 
 	return parseTreeString(leftTree) + parseTreeString(rightTree)
@@ -121,7 +121,7 @@ func parseRow(row string) ([2]treeNode, swapType) {
 	leftStr := strings.Split(split[2][6:len(split[2])-1], ",")
 	rightStr := strings.Split(split[3][7:len(split[3])-1], ",")
 
-	nodes[0] =  treeNode{
+	nodes[0] = treeNode{
 		id:     id,
 		symbol: leftStr[1],
 		rank:   ints.FromString(leftStr[0]),
@@ -197,17 +197,17 @@ func getString(tree *treeNode, level int) string {
 	return out
 }
 
-func swapNodes(a,b *treeNode, id int, swapBranches bool) (*treeNode, *treeNode) {
-	exclusions:= []string{}
-	firstNode,ok,exclusion:= findNode(a,id,exclusions)
+func swapNodes(a, b *treeNode, id int, swapBranches bool) (*treeNode, *treeNode) {
+	exclusions := []string{}
+	firstNode, ok, exclusion := findNode(a, id, exclusions)
 	if !ok {
-		firstNode,_,exclusion= findNode(b,id,exclusions)
+		firstNode, _, exclusion = findNode(b, id, exclusions)
 	}
 	exclusions = append(exclusions, exclusion)
 
-	secondNode,ok,_:=findNode(b,id,exclusions)
+	secondNode, ok, _ := findNode(b, id, exclusions)
 	if !ok {
-		secondNode,_,_ = findNode(a,id,exclusions)
+		secondNode, _, _ = findNode(a, id, exclusions)
 	}
 
 	if swapBranches {
@@ -215,19 +215,19 @@ func swapNodes(a,b *treeNode, id int, swapBranches bool) (*treeNode, *treeNode) 
 	}
 
 	if a.id == id {
-		return b,a
+		return b, a
 	}
 
-	dummyNode:= &treeNode{}
+	dummyNode := &treeNode{}
 
-	a.SwapRefs(firstNode,dummyNode)
-	b.SwapRefs(firstNode,dummyNode)
-	a.SwapRefs(secondNode,firstNode)
-	b.SwapRefs(secondNode,firstNode)
-	a.SwapRefs(dummyNode,secondNode)
-	b.SwapRefs(dummyNode,secondNode)
+	a.SwapRefs(firstNode, dummyNode)
+	b.SwapRefs(firstNode, dummyNode)
+	a.SwapRefs(secondNode, firstNode)
+	b.SwapRefs(secondNode, firstNode)
+	a.SwapRefs(dummyNode, secondNode)
+	b.SwapRefs(dummyNode, secondNode)
 
-	return a,b
+	return a, b
 }
 
 func findNode(a *treeNode, id int, exclusions []string) (*treeNode, bool, string) {
@@ -235,24 +235,24 @@ func findNode(a *treeNode, id int, exclusions []string) (*treeNode, bool, string
 		return a, false, ""
 	}
 
-	if a.id == id && !slices.Contains(exclusions,a.symbol) {
-		return a,true, a.symbol
-	}
-		
-	node,ok, str:= findNode(a.left,id,exclusions)
-	if ok {
-		return node,true, str
+	if a.id == id && !slices.Contains(exclusions, a.symbol) {
+		return a, true, a.symbol
 	}
 
-	node,ok,str = findNode(a.right,id,exclusions)
+	node, ok, str := findNode(a.left, id, exclusions)
 	if ok {
-		return node,true,str
+		return node, true, str
 	}
-	
-	return a,false,""
+
+	node, ok, str = findNode(a.right, id, exclusions)
+	if ok {
+		return node, true, str
+	}
+
+	return a, false, ""
 }
 
-func (a *treeNode) SwapRefs (b,c *treeNode) {
+func (a *treeNode) SwapRefs(b, c *treeNode) {
 	if a == nil {
 		return
 	}
@@ -267,6 +267,6 @@ func (a *treeNode) SwapRefs (b,c *treeNode) {
 		return
 	}
 
-	a.left.SwapRefs(b,c)
-	a.right.SwapRefs(b,c)
+	a.left.SwapRefs(b, c)
+	a.right.SwapRefs(b, c)
 }

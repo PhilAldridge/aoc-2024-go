@@ -35,7 +35,7 @@ func part1(name string) int {
 					continue
 				}
 				//list of unique summits reachable at this location
-				reachableSummitMap[i][j] = getReachableSummits(mapping,reachableSummitMap,check,i,j)
+				reachableSummitMap[i][j] = getReachableSummits(mapping, reachableSummitMap, check, i, j)
 				if check == 0 {
 					//at the base, add number of reachable summits to total
 					total += len(reachableSummitMap[i][j])
@@ -64,7 +64,7 @@ func part2(name string) int {
 					continue
 				}
 				//add up the four adjacent number of paths where they are 1 above current height
-				scoreMap[i][j] = getNewScore(mapping,scoreMap,i,j,check)
+				scoreMap[i][j] = getNewScore(mapping, scoreMap, i, j, check)
 				if check == 0 {
 					//at base, add total paths to summits to the running total
 					total += scoreMap[i][j]

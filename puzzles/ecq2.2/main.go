@@ -57,7 +57,7 @@ func part3(name string) int {
 }
 
 func countPops(balloons string, startIndex int) int {
-	if len(balloons) <=1 {
+	if len(balloons) <= 1 {
 		return len(balloons)
 	}
 
@@ -87,8 +87,8 @@ func countPops(balloons string, startIndex int) int {
 		boltIndex = (boltIndex + 1) % 3
 	}
 
-	remaining:= string(balloonsLeft)
-	finalIndex:= (secondHalfDoubleIndex+1)/2
+	remaining := string(balloonsLeft)
+	finalIndex := (secondHalfDoubleIndex + 1) / 2
 	if finalIndex < len(balloons) {
 		remaining += balloons[finalIndex:]
 	}

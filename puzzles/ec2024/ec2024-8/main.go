@@ -16,7 +16,6 @@ func main() {
 	split2 := time.Now()
 	fmt.Println("Part 3 answer: ", part3("input3.txt"))
 
-	
 	fmt.Println()
 	fmt.Println("Part 1: ", split.Sub(start))
 	fmt.Println("Part 2: ", split2.Sub(split))
@@ -24,13 +23,13 @@ func main() {
 }
 
 func part1(name string) int {
-	blocksGiven:= ints.FromString(files.Read(name))
+	blocksGiven := ints.FromString(files.Read(name))
 
-	blocksUsed:= 0
-	targetWidth:= -1
+	blocksUsed := 0
+	targetWidth := -1
 
 	for blocksUsed < blocksGiven {
-		targetWidth +=2
+		targetWidth += 2
 		blocksUsed += targetWidth
 	}
 
@@ -38,17 +37,17 @@ func part1(name string) int {
 }
 
 func part2(name string) int {
-	input:= ints.FromStringSlice( files.ReadLines(name))
-	multiplier:= input[0]
-	modulo:= input[1]
-	blocks:= input[2]
+	input := ints.FromStringSlice(files.ReadLines(name))
+	multiplier := input[0]
+	modulo := input[1]
+	blocks := input[2]
 
-	blocksUsed:= 1
-	targetWidth:= 1
-	thickness:=1
+	blocksUsed := 1
+	targetWidth := 1
+	thickness := 1
 
 	for blocksUsed < blocks {
-		targetWidth +=2
+		targetWidth += 2
 		thickness = (thickness * multiplier) % modulo
 		blocksUsed += targetWidth * thickness
 	}
@@ -56,25 +55,24 @@ func part2(name string) int {
 	return targetWidth * (blocksUsed - blocks)
 }
 
-
 func part3(name string) int {
-	input:= ints.FromStringSlice( files.ReadLines(name))
-	multiplier:= input[0]
-	modulo:= input[1]
-	blocks:= input[2]
+	input := ints.FromStringSlice(files.ReadLines(name))
+	multiplier := input[0]
+	modulo := input[1]
+	blocks := input[2]
 
-	columns:= []int{1}
-	blocksRemoved:=0
-	thickness:= 1
+	columns := []int{1}
+	blocksRemoved := 0
+	thickness := 1
 
-	for ints.Sum(columns)- blocksRemoved < blocks {
-		nextLayer:= make([]int,len(columns)+2)
-		thickness = (thickness * multiplier) % modulo + modulo
+	for ints.Sum(columns)-blocksRemoved < blocks {
+		nextLayer := make([]int, len(columns)+2)
+		thickness = (thickness*multiplier)%modulo + modulo
 		blocksRemoved = 0
-		for i:= range nextLayer {
-			columnIndex:= i-1
+		for i := range nextLayer {
+			columnIndex := i - 1
 			nextLayer[i] = thickness
-			if columnIndex >=0 && columnIndex <len(columns) {
+			if columnIndex >= 0 && columnIndex < len(columns) {
 				nextLayer[i] += columns[columnIndex]
 				blocksRemoved += (multiplier * len(nextLayer) * nextLayer[i]) % modulo
 			}
@@ -83,6 +81,5 @@ func part3(name string) int {
 		columns = nextLayer
 	}
 
-	return ints.Sum(columns)- blocksRemoved - blocks
+	return ints.Sum(columns) - blocksRemoved - blocks
 }
-

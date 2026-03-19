@@ -19,17 +19,17 @@ func main() {
 
 func part1(name string) int {
 	codeRanges := strings.Split(files.Read(name), ",")
-	invalidCodeSet:= make(map[int]bool)
+	invalidCodeSet := make(map[int]bool)
 
-	for _, codeRange:= range codeRanges {
+	for _, codeRange := range codeRanges {
 		rangeStrings := strings.Split(codeRange, "-")
 		rangeInts := ints.FromStringSlice(rangeStrings)
 
-		for totalDigits:= len(rangeStrings[0]); totalDigits <= len(rangeStrings[1]); totalDigits++ {
-			if totalDigits % 2 ==0 {
-				recursiveCreateDoubleCode("",rangeInts[0],rangeInts[1],totalDigits,invalidCodeSet)
+		for totalDigits := len(rangeStrings[0]); totalDigits <= len(rangeStrings[1]); totalDigits++ {
+			if totalDigits%2 == 0 {
+				recursiveCreateDoubleCode("", rangeInts[0], rangeInts[1], totalDigits, invalidCodeSet)
 			}
-			
+
 		}
 	}
 
@@ -38,17 +38,17 @@ func part1(name string) int {
 
 func part2(name string) int {
 	codeRanges := strings.Split(files.Read(name), ",")
-	invalidCodeSet:= make(map[int]bool)
+	invalidCodeSet := make(map[int]bool)
 
-	for _, codeRange:= range codeRanges {
+	for _, codeRange := range codeRanges {
 		rangeStrings := strings.Split(codeRange, "-")
 		rangeInts := ints.FromStringSlice(rangeStrings)
 
-		for totalDigits:= len(rangeStrings[0]); totalDigits <= len(rangeStrings[1]); totalDigits++ {
-			if totalDigits%2 ==0 {
-				recursiveNCode("",rangeInts[0],rangeInts[1],totalDigits,invalidCodeSet)
+		for totalDigits := len(rangeStrings[0]); totalDigits <= len(rangeStrings[1]); totalDigits++ {
+			if totalDigits%2 == 0 {
+				recursiveNCode("", rangeInts[0], rangeInts[1], totalDigits, invalidCodeSet)
 			}
-			
+
 		}
 	}
 
@@ -60,30 +60,30 @@ func recursiveCreateDoubleCode(halfCodeSoFar string, min int, max int, totalDigi
 		return
 	}
 
-	minCode:= ints.FromString(halfCodeSoFar + strings.Repeat("0", totalDigits-len(halfCodeSoFar)))
+	minCode := ints.FromString(halfCodeSoFar + strings.Repeat("0", totalDigits-len(halfCodeSoFar)))
 	if minCode > max {
 		return
 	}
 
-	maxCode:= ints.FromString(halfCodeSoFar + strings.Repeat("9", totalDigits-len(halfCodeSoFar)))
+	maxCode := ints.FromString(halfCodeSoFar + strings.Repeat("9", totalDigits-len(halfCodeSoFar)))
 	if maxCode < min {
 		return
 	}
 
-	if len(halfCodeSoFar)>0 && len(halfCodeSoFar) == totalDigits / 2 {
-		code:= ints.FromString(strings.Repeat(halfCodeSoFar, 2))
+	if len(halfCodeSoFar) > 0 && len(halfCodeSoFar) == totalDigits/2 {
+		code := ints.FromString(strings.Repeat(halfCodeSoFar, 2))
 		if code >= min && code <= max {
 			codeSet[code] = true
 		}
 	}
 
-	i:=0
-	if len(halfCodeSoFar)==0 {
-		i=1
+	i := 0
+	if len(halfCodeSoFar) == 0 {
+		i = 1
 	}
 
-	for i<10 {
-		recursiveCreateDoubleCode(halfCodeSoFar + strconv.Itoa(i),min,max,totalDigits,codeSet)
+	for i < 10 {
+		recursiveCreateDoubleCode(halfCodeSoFar+strconv.Itoa(i), min, max, totalDigits, codeSet)
 		i++
 	}
 }
@@ -93,37 +93,37 @@ func recursiveNCode(halfCodeSoFar string, min int, max int, totalDigits int, cod
 		return
 	}
 
-	minCode:= ints.FromString(halfCodeSoFar + strings.Repeat("0", totalDigits-len(halfCodeSoFar)))
+	minCode := ints.FromString(halfCodeSoFar + strings.Repeat("0", totalDigits-len(halfCodeSoFar)))
 	if minCode > max {
 		return
 	}
 
-	maxCode:= ints.FromString(halfCodeSoFar + strings.Repeat("9", totalDigits-len(halfCodeSoFar)))
+	maxCode := ints.FromString(halfCodeSoFar + strings.Repeat("9", totalDigits-len(halfCodeSoFar)))
 	if maxCode < min {
 		return
 	}
 
-	if len(halfCodeSoFar) > 0 && totalDigits % len(halfCodeSoFar) == 0 {
-		code:= ints.FromString(strings.Repeat(halfCodeSoFar, totalDigits/len(halfCodeSoFar)))
+	if len(halfCodeSoFar) > 0 && totalDigits%len(halfCodeSoFar) == 0 {
+		code := ints.FromString(strings.Repeat(halfCodeSoFar, totalDigits/len(halfCodeSoFar)))
 		if code >= min && code <= max {
 			codeSet[code] = true
 		}
 	}
 
-	i:=0
-	if len(halfCodeSoFar)==0 {
-		i=1
+	i := 0
+	if len(halfCodeSoFar) == 0 {
+		i = 1
 	}
 
-	for i<10 {
-		recursiveNCode(halfCodeSoFar + strconv.Itoa(i),min,max,totalDigits,codeSet)
+	for i < 10 {
+		recursiveNCode(halfCodeSoFar+strconv.Itoa(i), min, max, totalDigits, codeSet)
 		i++
 	}
 }
 
 func totalOfSet(codeSet map[int]bool) int {
-	total:= 0
-	for code:= range codeSet {
+	total := 0
+	for code := range codeSet {
 		total += code
 	}
 

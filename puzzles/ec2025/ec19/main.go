@@ -32,29 +32,29 @@ type state struct {
 func part1(name string) int {
 	input := files.ReadLines(name)
 	gaps := parseInput(input)
-	queue := []state{{y:0, flaps:0}}
+	queue := []state{{y: 0, flaps: 0}}
 	prevX := 0
 
-	for _, gap:= range gaps {
-		nextQueue:= []state{}
+	for _, gap := range gaps {
+		nextQueue := []state{}
 
-		for _, gapY:= range gap.gap {
-			min:= math.MaxInt
+		for _, gapY := range gap.gap {
+			min := math.MaxInt
 
-			for _, prev:= range queue {
-				dx:= gap.x - prevX
-				dy:= gapY - prev.y
+			for _, prev := range queue {
+				dx := gap.x - prevX
+				dy := gapY - prev.y
 
 				if ints.Abs(dy) > dx {
 					continue
 				}
 
-				upAndAcross:= dx + dy
-				if upAndAcross%2 ==1 {
+				upAndAcross := dx + dy
+				if upAndAcross%2 == 1 {
 					continue
 				}
 
-				flaps:= prev.flaps + upAndAcross/2
+				flaps := prev.flaps + upAndAcross/2
 
 				if flaps < min {
 					min = flaps
@@ -62,7 +62,7 @@ func part1(name string) int {
 			}
 
 			if min != math.MaxInt {
-				nextQueue = append(nextQueue, state{y:gapY, flaps: min})
+				nextQueue = append(nextQueue, state{y: gapY, flaps: min})
 			}
 		}
 
@@ -70,9 +70,9 @@ func part1(name string) int {
 		queue = nextQueue
 	}
 
-	min:= math.MaxInt 
+	min := math.MaxInt
 
-	for _, q:= range queue {
+	for _, q := range queue {
 		if q.flaps < min {
 			min = q.flaps
 		}
@@ -90,27 +90,27 @@ func part3(name string) int {
 }
 
 type gapType struct {
-	x int
+	x   int
 	gap []int
 }
 
-func parseInput(input []string) ([]gapType) {
+func parseInput(input []string) []gapType {
 	out := []gapType{}
 	gapMap := make(map[int][]int)
 
 	for _, row := range input {
 		vals := ints.FromStringSlice(strings.Split(row, ","))
-		gapMap[vals[0]] = append(gapMap[vals[0]], ints.GetIntsBetweenInclusive(vals[1], vals[1] + vals[2]-1)...)
+		gapMap[vals[0]] = append(gapMap[vals[0]], ints.GetIntsBetweenInclusive(vals[1], vals[1]+vals[2]-1)...)
 	}
 
-	for k,v:= range gapMap {
+	for k, v := range gapMap {
 		out = append(out, gapType{
-			x: k,
+			x:   k,
 			gap: v,
 		})
 	}
 
-	slices.SortFunc(out, func(a,b gapType) int {
+	slices.SortFunc(out, func(a, b gapType) int {
 		return a.x - b.x
 	})
 

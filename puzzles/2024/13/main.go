@@ -71,18 +71,18 @@ func machineVal(machine machine) int {
 		//None of the inputs ended up being  parallel, so this code is redundant. Left in for completeness
 		if machine.a.J > 3*machine.b.J {
 			//Pressing a is cheaper than pressing b. Guess and check starting with max possible a presses.
-			for j:= machine.target.J/machine.a.J; j>=0; j-- {
-				distanceLeft:= machine.target.J - j*machine.a.J
-				for i:=0; i<=distanceLeft/machine.b.I; i++ {
-					bDist:= machine.b.I * i
+			for j := machine.target.J / machine.a.J; j >= 0; j-- {
+				distanceLeft := machine.target.J - j*machine.a.J
+				for i := 0; i <= distanceLeft/machine.b.I; i++ {
+					bDist := machine.b.I * i
 					if distanceLeft < bDist {
 						break
 					}
-					if distanceLeft == bDist && machine.target.I == machine.a.I*j + machine.b.I*i {
+					if distanceLeft == bDist && machine.target.I == machine.a.I*j+machine.b.I*i {
 						return aVal*j + bVal*i
 					}
 				}
-			} 
+			}
 		} else {
 			//Pressing b is cheaper than pressing a. Guess and check starting with max possible b presses.
 			for i := machine.target.J / machine.b.J; i >= 0; i-- {
@@ -92,7 +92,7 @@ func machineVal(machine machine) int {
 					if distanceLeft < aDist {
 						break
 					}
-					if distanceLeft == aDist && machine.target.I == machine.a.I*j + machine.b.I*i {
+					if distanceLeft == aDist && machine.target.I == machine.a.I*j+machine.b.I*i {
 						return aVal*j + bVal*i
 					}
 				}
@@ -104,7 +104,7 @@ func machineVal(machine machine) int {
 		det := machine.a.I*machine.b.J - machine.a.J*machine.b.I
 		aAmount := machine.b.J*machine.target.I - machine.b.I*machine.target.J
 		bAmount := machine.a.I*machine.target.J - machine.a.J*machine.target.I
-		if aAmount%det == 0 && bAmount%det == 0 && aAmount/det>=0 && bAmount/det>=0 {
+		if aAmount%det == 0 && bAmount%det == 0 && aAmount/det >= 0 && bAmount/det >= 0 {
 			return aVal*aAmount/det + bVal*bAmount/det
 		}
 	}

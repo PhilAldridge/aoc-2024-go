@@ -17,20 +17,20 @@ func main() {
 }
 
 func part1(name string) int {
-	connectionMap:= getConnectionMap(name)
-	threeList:= make(map[string]int)
-	for k,v:= range connectionMap {
-		if k[0]!='t' || len(v.connections)<=2 {
+	connectionMap := getConnectionMap(name)
+	threeList := make(map[string]int)
+	for k, v := range connectionMap {
+		if k[0] != 't' || len(v.connections) <= 2 {
 			continue
 		}
-		for i:= 0 ; i<len(v.connections); i++ {
-			for j:= i+1; j<len(v.connections); j++ {
-				if !slices.Contains(connectionMap[v.connections[i]].connections,v.connections[j]) {
+		for i := 0; i < len(v.connections); i++ {
+			for j := i + 1; j < len(v.connections); j++ {
+				if !slices.Contains(connectionMap[v.connections[i]].connections, v.connections[j]) {
 					continue
 				}
-				three:= []string{k,v.connections[i],v.connections[j]}
+				three := []string{k, v.connections[i], v.connections[j]}
 				slices.Sort(three)
-				threeList[strings.Join(three,",")] ++
+				threeList[strings.Join(three, ",")]++
 			}
 		}
 	}
@@ -38,18 +38,18 @@ func part1(name string) int {
 }
 
 func part2(name string) string {
-	connectionMap:= getConnectionMap(name)
-	res:=""
-	maxFound:= 2
-	for k,v:= range connectionMap {
-		if len(v.connections)<maxFound {
+	connectionMap := getConnectionMap(name)
+	res := ""
+	maxFound := 2
+	for k, v := range connectionMap {
+		if len(v.connections) < maxFound {
 			continue
 		}
-		computerList:= []string{}
-		for _,conn:= range v.connections {
-			connected:= true
-			for _,comp:= range computerList {
-				if !slices.Contains(connectionMap[conn].connections,comp) {
+		computerList := []string{}
+		for _, conn := range v.connections {
+			connected := true
+			for _, comp := range computerList {
+				if !slices.Contains(connectionMap[conn].connections, comp) {
 					connected = false
 					break
 				}
@@ -58,11 +58,11 @@ func part2(name string) string {
 				computerList = append(computerList, conn)
 			}
 		}
-		computerList = append(computerList,  k)
+		computerList = append(computerList, k)
 		if len(computerList) > maxFound {
 			maxFound = len(computerList)
 			slices.Sort(computerList)
-			res = strings.Join(computerList,",")
+			res = strings.Join(computerList, ",")
 		}
 	}
 	return res
@@ -73,14 +73,14 @@ type computer struct {
 }
 
 func getConnectionMap(name string) map[string]computer {
-	lines:= files.ReadLines(name)
-	mapping:= make(map[string]computer)
+	lines := files.ReadLines(name)
+	mapping := make(map[string]computer)
 
-	for _,l:= range lines{
-		computers:= strings.Split(l, "-")
-		if entry,ok:= mapping[computers[0]];ok {
-			exists:= false
-			for _,c:=range entry.connections {
+	for _, l := range lines {
+		computers := strings.Split(l, "-")
+		if entry, ok := mapping[computers[0]]; ok {
+			exists := false
+			for _, c := range entry.connections {
 				if computers[1] == c {
 					exists = true
 					break
@@ -94,9 +94,9 @@ func getConnectionMap(name string) map[string]computer {
 			mapping[computers[0]] = computer{connections: []string{computers[1]}}
 		}
 
-		if entry,ok:= mapping[computers[1]];ok {
-			exists:= false
-			for _,c:=range entry.connections {
+		if entry, ok := mapping[computers[1]]; ok {
+			exists := false
+			for _, c := range entry.connections {
 				if computers[0] == c {
 					exists = true
 					break
@@ -110,6 +110,6 @@ func getConnectionMap(name string) map[string]computer {
 			mapping[computers[1]] = computer{connections: []string{computers[0]}}
 		}
 	}
-	
+
 	return mapping
 }

@@ -12,31 +12,31 @@ func main() {
 	fmt.Println("Part 1 answer: ", part1("input.txt"))
 	split := time.Now()
 	fmt.Println("Part 2 answer: ", part2("input.txt"))
-	
+
 	fmt.Println()
 	fmt.Println("Part 1: ", split.Sub(start))
 	fmt.Println("Part 2: ", time.Since(split))
 }
 
 func part1(name string) int {
-	lines:= files.ReadLines(name)
+	lines := files.ReadLines(name)
 
-	total:= 0
+	total := 0
 
-	beamMap:= make(map[int]bool)
+	beamMap := make(map[int]bool)
 
-	for i, char:= range lines[0]{
+	for i, char := range lines[0] {
 		if char == 'S' {
-			beamMap[i]=true
+			beamMap[i] = true
 			break
 		}
 	}
 
-	for i:=1; i<len(lines); i++ {
-		for k:= range beamMap {
+	for i := 1; i < len(lines); i++ {
+		for k := range beamMap {
 			if lines[i][k] == '^' {
-				total ++
-				delete(beamMap,k)
+				total++
+				delete(beamMap, k)
 				if k != 0 {
 					beamMap[k-1] = true
 				}
@@ -50,24 +50,24 @@ func part1(name string) int {
 }
 
 func part2(name string) int {
-	lines:= files.ReadLines(name)
+	lines := files.ReadLines(name)
 
-	startX:=0
+	startX := 0
 
-	for i, char:= range lines[0]{
+	for i, char := range lines[0] {
 		if char == 'S' {
 			startX = i
 			break
 		}
 	}
 
-	memoMap:= make(map[[2]int]int)
+	memoMap := make(map[[2]int]int)
 
-	return countTimelines(1,startX,lines, memoMap)
+	return countTimelines(1, startX, lines, memoMap)
 }
 
 func countTimelines(yIndex int, xIndex int, lines []string, memoMap map[[2]int]int) int {
-	mapTuple:= [2]int{yIndex,xIndex}
+	mapTuple := [2]int{yIndex, xIndex}
 
 	val, ok := memoMap[mapTuple]
 	if ok {
@@ -84,21 +84,20 @@ func countTimelines(yIndex int, xIndex int, lines []string, memoMap map[[2]int]i
 		return 1
 	}
 
-	total:=0
+	total := 0
 
 	if lines[yIndex][xIndex] == '^' {
 		if xIndex != 0 {
-			total+= countTimelines(yIndex+1, xIndex-1, lines,memoMap)
+			total += countTimelines(yIndex+1, xIndex-1, lines, memoMap)
 		}
 
 		if xIndex+1 != len(lines[0]) {
-			total+= countTimelines(yIndex+1,xIndex+1, lines,memoMap)
+			total += countTimelines(yIndex+1, xIndex+1, lines, memoMap)
 		}
-
 
 		return total
 	} else {
-		total += countTimelines(yIndex+1,xIndex,lines,memoMap)
+		total += countTimelines(yIndex+1, xIndex, lines, memoMap)
 	}
 
 	memoMap[mapTuple] = total

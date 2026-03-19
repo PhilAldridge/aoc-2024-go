@@ -58,11 +58,11 @@ func part2(name string) int {
 		}
 	}
 
-	avg:= ints.Mean(duckCounts)
+	avg := ints.Mean(duckCounts)
 
-	for _,count:= range duckCounts {
+	for _, count := range duckCounts {
 		if count < avg {
-			rounds += avg-count
+			rounds += avg - count
 		}
 	}
 

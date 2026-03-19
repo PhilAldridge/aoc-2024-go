@@ -25,9 +25,9 @@ func main() {
 }
 
 type nextValType struct {
-	pos [3]int
+	pos   [3]int
 	score int
-	leaf bool
+	leaf  bool
 }
 
 func part1(name string) int {
@@ -74,8 +74,8 @@ func part3(name string) int {
 		grow(branch, segments)
 	}
 
-	maxHeight:= 0
-	leafCount:= 0
+	maxHeight := 0
+	leafCount := 0
 
 	for segment, leaf := range segments {
 		if segment[0] > maxHeight {
@@ -86,14 +86,14 @@ func part3(name string) int {
 		}
 	}
 
-	minMurkiness:= math.MaxInt
+	minMurkiness := math.MaxInt
 
-	for height:= range maxHeight {
-		if _,ok:= segments[[3]int{height+1,0,0}]; !ok {
+	for height := range maxHeight {
+		if _, ok := segments[[3]int{height + 1, 0, 0}]; !ok {
 			continue
 		}
 
-		murkiness,ok:= calculateMurkiness(segments, height+1, leafCount, minMurkiness)
+		murkiness, ok := calculateMurkiness(segments, height+1, leafCount, minMurkiness)
 		if !ok {
 			fmt.Println(height, " skipped")
 			continue
@@ -101,7 +101,7 @@ func part3(name string) int {
 
 		if murkiness < minMurkiness {
 			minMurkiness = murkiness
-			fmt.Println(height, ": ",murkiness)
+			fmt.Println(height, ": ", murkiness)
 		}
 	}
 
@@ -118,42 +118,42 @@ func grow(branch string, segments map[[3]int]bool) {
 		case 'U':
 			for range amount {
 				currentPos[0]++
-				if _,ok:= segments[currentPos];!ok {
+				if _, ok := segments[currentPos]; !ok {
 					segments[currentPos] = false
 				}
 			}
 		case 'D':
 			for range amount {
 				currentPos[0]--
-				if _,ok:= segments[currentPos];!ok {
+				if _, ok := segments[currentPos]; !ok {
 					segments[currentPos] = false
 				}
 			}
 		case 'L':
 			for range amount {
 				currentPos[1]--
-				if _,ok:= segments[currentPos];!ok {
+				if _, ok := segments[currentPos]; !ok {
 					segments[currentPos] = false
 				}
 			}
 		case 'R':
 			for range amount {
 				currentPos[1]++
-				if _,ok:= segments[currentPos];!ok {
+				if _, ok := segments[currentPos]; !ok {
 					segments[currentPos] = false
 				}
 			}
 		case 'F':
 			for range amount {
 				currentPos[2]++
-				if _,ok:= segments[currentPos];!ok {
+				if _, ok := segments[currentPos]; !ok {
 					segments[currentPos] = false
 				}
 			}
 		case 'B':
 			for range amount {
 				currentPos[2]--
-				if _,ok:= segments[currentPos];!ok {
+				if _, ok := segments[currentPos]; !ok {
 					segments[currentPos] = false
 				}
 			}
@@ -163,31 +163,31 @@ func grow(branch string, segments map[[3]int]bool) {
 }
 
 func calculateMurkiness(tree map[[3]int]bool, height int, leafCount int, minSoFar int) (int, bool) {
-	currentPos:= [3]int{height,0,0}
-	shortestDistances:= map[[3]int]int{
-		currentPos:0,
+	currentPos := [3]int{height, 0, 0}
+	shortestDistances := map[[3]int]int{
+		currentPos: 0,
 	}
 
-	directions:= [6][3]int{
-		{1,0,0},
-		{-1,0,0},
-		{0,1,0},
-		{0,-1,0},
-		{0,0,1},
-		{0,0,-1},
+	directions := [6][3]int{
+		{1, 0, 0},
+		{-1, 0, 0},
+		{0, 1, 0},
+		{0, -1, 0},
+		{0, 0, 1},
+		{0, 0, -1},
 	}
 
-	total:= 0
-	leavesReached:=0
-	lastShortest:=0
+	total := 0
+	leavesReached := 0
+	lastShortest := 0
 
 	for leavesReached < leafCount {
-		nextVal:= nextValType{
+		nextVal := nextValType{
 			score: math.MaxInt,
 		}
 
-		if total + (lastShortest*(leafCount-leavesReached)) > minSoFar {
-			return 0,false
+		if total+(lastShortest*(leafCount-leavesReached)) > minSoFar {
+			return 0, false
 		}
 
 		for startPos, score := range shortestDistances {
@@ -195,27 +195,27 @@ func calculateMurkiness(tree map[[3]int]bool, height int, leafCount int, minSoFa
 				continue
 			}
 
-			for _, direction:= range directions {
-				newPos:= [3]int{
-					startPos[0]+direction[0],
-					startPos[1]+direction[1],
-					startPos[2]+direction[2],
+			for _, direction := range directions {
+				newPos := [3]int{
+					startPos[0] + direction[0],
+					startPos[1] + direction[1],
+					startPos[2] + direction[2],
 				}
 
-				if _,ok:= shortestDistances[newPos]; ok {
+				if _, ok := shortestDistances[newPos]; ok {
 					continue
-				} 
+				}
 
-				leaf,ok:= tree[newPos]
+				leaf, ok := tree[newPos]
 
 				if !ok {
 					continue
 				}
 
 				nextVal = nextValType{
-					pos: newPos,
-					score: score+1,
-					leaf: leaf,
+					pos:   newPos,
+					score: score + 1,
+					leaf:  leaf,
 				}
 			}
 		}
@@ -231,5 +231,5 @@ func calculateMurkiness(tree map[[3]int]bool, height int, leafCount int, minSoFa
 		lastShortest = nextVal.score
 	}
 
-	return total,true
+	return total, true
 }

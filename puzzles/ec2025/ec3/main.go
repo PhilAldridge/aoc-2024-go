@@ -18,7 +18,6 @@ func main() {
 	split2 := time.Now()
 	fmt.Println("Part 3 answer: ", part3("input3.txt"))
 
-	
 	fmt.Println()
 	fmt.Println("Part 1: ", split.Sub(start))
 	fmt.Println("Part 2: ", split2.Sub(split))
@@ -26,12 +25,12 @@ func main() {
 }
 
 func part1(name string) int {
-	crates:= ints.FromStringSlice(strings.Split(files.Read(name),","))
-	crateMap:= make(map[int]bool)
-	total:= 0
+	crates := ints.FromStringSlice(strings.Split(files.Read(name), ","))
+	crateMap := make(map[int]bool)
+	total := 0
 
-	for _, crate:= range crates {
-		if _,ok:= crateMap[crate]; ok {
+	for _, crate := range crates {
+		if _, ok := crateMap[crate]; ok {
 			continue
 		}
 
@@ -43,12 +42,12 @@ func part1(name string) int {
 }
 
 func part2(name string) int {
-	crates:= ints.FromStringSlice(strings.Split(files.Read(name),","))
-	crateMap:= make(map[int]bool)
-	total:= 0
+	crates := ints.FromStringSlice(strings.Split(files.Read(name), ","))
+	crateMap := make(map[int]bool)
+	total := 0
 
-	for _, crate:= range crates {
-		if _,ok:= crateMap[crate]; ok {
+	for _, crate := range crates {
+		if _, ok := crateMap[crate]; ok {
 			continue
 		}
 
@@ -56,30 +55,29 @@ func part2(name string) int {
 	}
 
 	crateSlice := []int{}
-	for crate,_ := range crateMap {
+	for crate, _ := range crateMap {
 		crateSlice = append(crateSlice, crate)
 	}
 
 	slices.Sort(crateSlice)
 
-	for i:= range 20 {
+	for i := range 20 {
 		total += crateSlice[i]
 	}
 
 	return total
 }
 
-
 func part3(name string) int {
-	crates:= ints.FromStringSlice(strings.Split(files.Read(name),","))
-	crateMap:= make(map[int]int)
-	max:= 0
+	crates := ints.FromStringSlice(strings.Split(files.Read(name), ","))
+	crateMap := make(map[int]int)
+	max := 0
 
-	for _, crate:= range crates {
-		crateMap[crate] ++
+	for _, crate := range crates {
+		crateMap[crate]++
 	}
 
-	for _,count := range crateMap {
+	for _, count := range crateMap {
 		if count > max {
 			max = count
 		}
@@ -87,4 +85,3 @@ func part3(name string) int {
 
 	return max
 }
-

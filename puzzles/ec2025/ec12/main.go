@@ -27,10 +27,10 @@ func part1(name string) int {
 	barrels := files.ReadLines(name)
 
 	start := coords.NewCoord(0, 0)
-	burnedMap := map[coords.Coord]bool{	start: true}
+	burnedMap := map[coords.Coord]bool{start: true}
 	queue := []coords.Coord{start}
 
-	return len(runRound(barrels,queue,burnedMap))
+	return len(runRound(barrels, queue, burnedMap))
 }
 
 func part2(name string) int {
@@ -39,9 +39,9 @@ func part2(name string) int {
 	start := coords.NewCoord(0, 0)
 	start2 := coords.NewCoord(len(barrels)-1, len(barrels[0])-1)
 	burnedMap := make(map[coords.Coord]bool)
-	queue := []coords.Coord{start,start2}
+	queue := []coords.Coord{start, start2}
 
-	return len(runRound(barrels,queue,burnedMap))
+	return len(runRound(barrels, queue, burnedMap))
 }
 
 func part3(name string) int {
@@ -51,18 +51,18 @@ func part3(name string) int {
 	var testMap map[coords.Coord]bool
 	roundMax := make(map[coords.Coord]bool)
 	var maxPos coords.Coord
-	positions:=[]coords.Coord{}
+	positions := []coords.Coord{}
 
 	for range 3 {
 		for i, row := range input {
 			for j := range row {
 				testPos := []coords.Coord{coords.NewCoord(i, j)}
 
-				if _,ok:= doneMap[testPos[0]]; ok {
+				if _, ok := doneMap[testPos[0]]; ok {
 					continue
 				}
 
-				if _,ok:= testMap[testPos[0]]; ok {
+				if _, ok := testMap[testPos[0]]; ok {
 					continue
 				}
 
@@ -76,20 +76,20 @@ func part3(name string) int {
 
 		positions = append(positions, maxPos)
 
-		for k,v:= range roundMax {
-			doneMap[k]=v
+		for k, v := range roundMax {
+			doneMap[k] = v
 		}
 
-		roundMax= make(map[coords.Coord]bool)
+		roundMax = make(map[coords.Coord]bool)
 	}
 
-	return len(runRound(input,positions,make(map[coords.Coord]bool)))
+	return len(runRound(input, positions, make(map[coords.Coord]bool)))
 }
 
 func runRound(input []string, queue []coords.Coord, prevMap map[coords.Coord]bool) map[coords.Coord]bool {
 	newMap := make(map[coords.Coord]bool)
 
-	for _,pos:= range queue {
+	for _, pos := range queue {
 		newMap[pos] = true
 	}
 

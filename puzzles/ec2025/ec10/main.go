@@ -196,7 +196,7 @@ func (s sheepsType) move(index int) sheepsType {
 }
 
 func (s sheepsType) noneLeft(height int) bool {
-	for _,sheep:= range s {
+	for _, sheep := range s {
 		if !sheep.void && sheep.position.I < height && !sheep.eaten {
 			return false
 		}
@@ -227,12 +227,12 @@ func part3(name string) int {
 	input := files.ReadLines(name)
 	dragon, sheep, hides := parseInput(input)
 
-	initialState:= gameVariant{
+	initialState := gameVariant{
 		dragon: dragon,
-		sheep: NewSheepsType(sheep),
+		sheep:  NewSheepsType(sheep),
 	}
 
-	memo:= make(map[gameVariant]int)
+	memo := make(map[gameVariant]int)
 
 	return moveRecursive(initialState, hides, memo, len(sheep), input)
 }
@@ -281,7 +281,7 @@ func moveRecursive(current gameVariant, hides map[coords.Coord]bool, memo map[ga
 		}
 
 		newPos := s.position.Down(1)
-		if (newPos.Equals(current.dragon) && !hides[newPos]) {
+		if newPos.Equals(current.dragon) && !hides[newPos] {
 			continue
 		}
 
@@ -305,7 +305,7 @@ func moveRecursive(current gameVariant, hides map[coords.Coord]bool, memo map[ga
 
 			newState := gameVariant{
 				dragon: dragonMove,
-				sheep:  sheepMove.sheep.getEaten(dragonMove,hides),
+				sheep:  sheepMove.sheep.getEaten(dragonMove, hides),
 			}
 
 			if newState.sheep.eaten() == toEat {

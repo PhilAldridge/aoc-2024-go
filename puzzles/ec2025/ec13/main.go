@@ -17,7 +17,6 @@ func main() {
 	split2 := time.Now()
 	fmt.Println("Part 3 answer: ", part3("input3.txt"))
 
-	
 	fmt.Println()
 	fmt.Println("Part 1: ", split.Sub(start))
 	fmt.Println("Part 2: ", split2.Sub(split))
@@ -25,19 +24,19 @@ func main() {
 }
 
 func part1(name string) int {
-	input:= files.ReadLines(name)
-	vals:= ints.FromStringSlice(input)
-	dial:= make([]int,len(input)+1)
-	evenI, oddI:= 1,len(input)
+	input := files.ReadLines(name)
+	vals := ints.FromStringSlice(input)
+	dial := make([]int, len(input)+1)
+	evenI, oddI := 1, len(input)
 	dial[0] = 1
 
-	for i,val:= range vals {
-		if i%2==0 {
+	for i, val := range vals {
+		if i%2 == 0 {
 			dial[evenI] = val
 			evenI++
 		} else {
 			dial[oddI] = val
-			oddI --
+			oddI--
 		}
 	}
 
@@ -45,41 +44,40 @@ func part1(name string) int {
 }
 
 func part2(name string) int {
-	input:= files.ReadLines(name)
-	dial:= createDialGivenRanges(input)
+	input := files.ReadLines(name)
+	dial := createDialGivenRanges(input)
 
 	return dial[20252025%len(dial)]
 }
 
-
 func part3(name string) int {
-	input:= files.ReadLines(name)
-	dial:= createDialGivenRanges(input)
+	input := files.ReadLines(name)
+	dial := createDialGivenRanges(input)
 
 	return dial[202520252025%len(dial)]
 }
 
-func parseRange(input string) (int,int) {
-	split:= strings.Split(input,"-")
-	vals:= ints.FromStringSlice(split)
+func parseRange(input string) (int, int) {
+	split := strings.Split(input, "-")
+	vals := ints.FromStringSlice(split)
 
-	return vals[0],vals[1]
+	return vals[0], vals[1]
 }
 
 func createDialGivenRanges(input []string) []int {
-	dialLeft, dialRight:= []int{}, []int{1}
+	dialLeft, dialRight := []int{}, []int{1}
 
-	for i,rangeString:= range input {
-		start,end:= parseRange(rangeString)
+	for i, rangeString := range input {
+		start, end := parseRange(rangeString)
 
-		if i%2==0 {
-			dialRight = append(dialRight, ints.GetIntsBetweenInclusive(start,end)...)
+		if i%2 == 0 {
+			dialRight = append(dialRight, ints.GetIntsBetweenInclusive(start, end)...)
 		} else {
-			dialLeft = append(dialLeft, ints.GetIntsBetweenInclusive(start,end)...)
+			dialLeft = append(dialLeft, ints.GetIntsBetweenInclusive(start, end)...)
 		}
 	}
 
-	for i:= len(dialLeft)-1; i>=0; i-- {
+	for i := len(dialLeft) - 1; i >= 0; i-- {
 		dialRight = append(dialRight, dialLeft[i])
 	}
 

@@ -9,7 +9,7 @@ import (
 func TestPart1(t *testing.T) {
 
 	t.Run("Part 1", func(t *testing.T) {
-		expected := 37990510 
+		expected := 37990510
 		actual := part1("test-input.txt")
 		assert.Equal(t, expected, actual)
 	})

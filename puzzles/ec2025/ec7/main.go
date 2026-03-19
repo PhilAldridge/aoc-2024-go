@@ -43,11 +43,11 @@ func part2(name string) int {
 	input := files.ReadParagraphs(name)
 	names := strings.Split(input[0][0], ",")
 	ruleMap := myslices.StringSliceToStringMapStringSlice(input[1], " > ", ",")
-	total:=0
+	total := 0
 
 	for i, name := range names {
 		if checkName(name, ruleMap) {
-			total += i+1
+			total += i + 1
 		}
 
 	}
@@ -59,11 +59,11 @@ func part3(name string) int {
 	input := files.ReadParagraphs(name)
 	prefixes := strings.Split(input[0][0], ",")
 	ruleMap := myslices.StringSliceToStringMapStringSlice(input[1], " > ", ",")
-	names:= make(map[string]bool)
+	names := make(map[string]bool)
 
 	for _, prefix := range prefixes {
 		if checkName(prefix, ruleMap) {
-			getNames(prefix, ruleMap,names)
+			getNames(prefix, ruleMap, names)
 		}
 
 	}
@@ -85,13 +85,13 @@ func getNames(prefix string, ruleMap map[string][]string, names map[string]bool)
 		return
 	}
 
-	nextChars:= ruleMap[prefix[len(prefix)-1:]]
+	nextChars := ruleMap[prefix[len(prefix)-1:]]
 
-	for _, next:= range nextChars {
-		getNames(prefix+next,ruleMap,names)
+	for _, next := range nextChars {
+		getNames(prefix+next, ruleMap, names)
 	}
 
-	if len(prefix)>=7 {
+	if len(prefix) >= 7 {
 		names[prefix] = true
 	}
 }

@@ -22,9 +22,9 @@ func ReadLinesAsRunes(name string) [][]rune {
 	if !ok {
 		panic("unable to find caller so cannot build path to read file")
 	}
-	lines:= readLines(name, callingFile)
-	result:= make([][]rune, len(lines))
-	for i,line:= range lines {
+	lines := readLines(name, callingFile)
+	result := make([][]rune, len(lines))
+	for i, line := range lines {
 		result[i] = []rune(line)
 	}
 

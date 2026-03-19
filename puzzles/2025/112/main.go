@@ -14,27 +14,27 @@ func main() {
 	fmt.Println("Part 1 answer: ", part1("input"))
 	split := time.Now()
 	fmt.Println("Part 2 answer: ", part2("input"))
-	
+
 	fmt.Println()
 	fmt.Println("Part 1: ", split.Sub(start))
 	fmt.Println("Part 2: ", time.Since(split))
 }
 
 func part1(name string) int {
-	sections:= files.ReadParagraphs(name)
+	sections := files.ReadParagraphs(name)
 
-	total:=0
+	total := 0
 
-	for _,input:= range sections[len(sections)-1] {
+	for _, input := range sections[len(sections)-1] {
 		grid := parseGrid(input)
 
 		// Cannot fit - not enough area
-		if grid.x * grid.y < ints.Sum(grid.presentIndices)*9 {
+		if grid.x*grid.y < ints.Sum(grid.presentIndices)*9 {
 			continue
 		}
 
 		// Must fit, even if you don't try rearranging squares
-		if (grid.x/3) * (grid.y/3) >= ints.Sum(grid.presentIndices) {
+		if (grid.x/3)*(grid.y/3) >= ints.Sum(grid.presentIndices) {
 			total++
 			continue
 		}
@@ -50,17 +50,17 @@ func part2(name string) int {
 }
 
 func parseInput(name string) ([]presentType, []gridType) {
-	sections:= files.ReadParagraphs(name)
+	sections := files.ReadParagraphs(name)
 
-	presents:= []presentType{}
+	presents := []presentType{}
 
-	for _,input:= range sections[0:len(sections)-1] {
+	for _, input := range sections[0 : len(sections)-1] {
 		presents = append(presents, parsePresent(input))
 	}
 
-	grids:= []gridType{}
+	grids := []gridType{}
 
-	for _,input:= range sections[len(sections)-1] {
+	for _, input := range sections[len(sections)-1] {
 		grids = append(grids, parseGrid(input))
 	}
 
@@ -68,15 +68,15 @@ func parseInput(name string) ([]presentType, []gridType) {
 }
 
 func parsePresent(input []string) presentType {
-	present:= presentType{
-		index: ints.FromString(input[0][0:len(input[0])-1]),
+	present := presentType{
+		index:  ints.FromString(input[0][0 : len(input[0])-1]),
 		coords: [][2]int{},
 	}
 
-	for i:=0; i<3; i++ {
-		for j:=0; j<3; j++ {
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
 			if input[i+1][j] == '#' {
-				present.coords = append(present.coords, [2]int{i,j})
+				present.coords = append(present.coords, [2]int{i, j})
 			}
 		}
 	}
@@ -85,26 +85,26 @@ func parsePresent(input []string) presentType {
 }
 
 func parseGrid(input string) gridType {
-	splitOne:= strings.Split(input, ":")
+	splitOne := strings.Split(input, ":")
 
-	splitTwo:= ints.FromStringSlice(strings.Split(splitOne[0],"x"))
+	splitTwo := ints.FromStringSlice(strings.Split(splitOne[0], "x"))
 
-	splitThree:= ints.FromStringSlice(strings.Split(splitOne[1]," ")[1:])
+	splitThree := ints.FromStringSlice(strings.Split(splitOne[1], " ")[1:])
 
 	return gridType{
-		x:splitTwo[0],
-		y:splitTwo[1],
+		x:              splitTwo[0],
+		y:              splitTwo[1],
 		presentIndices: splitThree,
 	}
 }
 
 type presentType struct {
-	index int
+	index  int
 	coords [][2]int
 }
 
 type gridType struct {
-	x int
-	y int
+	x              int
+	y              int
 	presentIndices []int
 }

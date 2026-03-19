@@ -35,7 +35,7 @@ func main() {
 	fmt.Println("Part 2: ", part2("input.txt"), " in:", time.Since(start))
 }
 
-func puzzle(name string) (int,string) {
+func puzzle(name string) (int, string) {
 	setup := make(map[string]bool, 2*NBIT)
 	latches := make(map[string]*conn, NLATCH)
 	circuit := make(map[string]LC, NCOMP)
@@ -43,7 +43,7 @@ func puzzle(name string) (int,string) {
 
 	mode := INIT
 	input := files.ReadLines(name)
-	for _,line:= range input {
+	for _, line := range input {
 		switch {
 		case line == "":
 			mode = WIRE
@@ -94,12 +94,12 @@ func puzzle(name string) (int,string) {
 }
 
 func part1(name string) int {
-	i,_:= puzzle(name)
+	i, _ := puzzle(name)
 	return i
 }
 
 func part2(name string) string {
-	_,s:= puzzle(name)
+	_, s := puzzle(name)
 	return s
 }
 

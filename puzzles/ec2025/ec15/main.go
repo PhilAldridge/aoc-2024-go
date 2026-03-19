@@ -27,17 +27,17 @@ func main() {
 
 type queueType struct {
 	position coords.Coord
-	time int
+	time     int
 }
 
 func part1(name string) int {
 	input := strings.Split(files.Read(name), ",")
-	lines, endPosition:= getLines(input)
-	yMap, xMap:= getImportantYandXvals(lines)
+	lines, endPosition := getLines(input)
+	yMap, xMap := getImportantYandXvals(lines)
 	startPosition := coords.NewCoord(0, 0)
 	visitedMap := map[coords.Coord]int{startPosition: 0}
 
-	queue := []queueType{{position: startPosition, time:0}}
+	queue := []queueType{{position: startPosition, time: 0}}
 
 	for len(queue) > 0 {
 		next := queue[0]
@@ -45,19 +45,19 @@ func part1(name string) int {
 
 		time := visitedMap[next.position]
 
-		for yVal:= range yMap {
+		for yVal := range yMap {
 			if yVal == next.position.I {
 				continue
 			}
 
-			newPosition:= coords.NewCoord(yVal,next.position.J)
-			newTime:= time + ints.Abs(yVal-next.position.I)
+			newPosition := coords.NewCoord(yVal, next.position.J)
+			newTime := time + ints.Abs(yVal-next.position.I)
 
-			if score,ok:= visitedMap[newPosition]; ok && newTime>=score {
+			if score, ok := visitedMap[newPosition]; ok && newTime >= score {
 				continue
 			}
 
-			if hitsAWall([2]coords.Coord{next.position,newPosition},lines) {
+			if hitsAWall([2]coords.Coord{next.position, newPosition}, lines) {
 				continue
 			}
 
@@ -70,19 +70,19 @@ func part1(name string) int {
 			queue = append(queue, queueType{position: newPosition, time: newTime})
 		}
 
-		for xVal:= range xMap {
+		for xVal := range xMap {
 			if xVal == next.position.J {
 				continue
 			}
 
-			newPosition:= coords.NewCoord(next.position.I,xVal)
-			newTime:= time + ints.Abs(xVal-next.position.J)
+			newPosition := coords.NewCoord(next.position.I, xVal)
+			newTime := time + ints.Abs(xVal-next.position.J)
 
-			if score,ok:= visitedMap[newPosition]; ok && newTime>=score {
+			if score, ok := visitedMap[newPosition]; ok && newTime >= score {
 				continue
 			}
 
-			if hitsAWall([2]coords.Coord{next.position,newPosition},lines) {
+			if hitsAWall([2]coords.Coord{next.position, newPosition}, lines) {
 				continue
 			}
 
@@ -95,7 +95,7 @@ func part1(name string) int {
 			queue = append(queue, queueType{position: newPosition, time: newTime})
 		}
 
-		slices.SortFunc(queue, func(a,b queueType) int {
+		slices.SortFunc(queue, func(a, b queueType) int {
 			return a.time - b.time
 		})
 	}
@@ -126,18 +126,18 @@ func getLines(input []string) ([][2]coords.Coord, coords.Coord) {
 			currentDirection = coords.TurnRight(currentDirection)
 		}
 
-		newPosition:= currentPosition.MoveBy(currentDirection, ints.FromString(instruction[1:]))
+		newPosition := currentPosition.MoveBy(currentDirection, ints.FromString(instruction[1:]))
 
-		if i==0 {
+		if i == 0 {
 			currentPosition = currentPosition.Add(currentDirection)
 		}
 
-		if i==len(input)-1 {
+		if i == len(input)-1 {
 			endPosition = newPosition
 			newPosition = newPosition.Add(coords.TurnBack(currentDirection))
 		}
 
-		lines = append(lines, [2]coords.Coord{currentPosition,newPosition})
+		lines = append(lines, [2]coords.Coord{currentPosition, newPosition})
 
 		currentPosition = newPosition
 	}
@@ -146,10 +146,10 @@ func getLines(input []string) ([][2]coords.Coord, coords.Coord) {
 }
 
 func getImportantYandXvals(lines [][2]coords.Coord) (map[int]bool, map[int]bool) {
-	yMap, xMap:= make(map[int]bool), make(map[int]bool)
+	yMap, xMap := make(map[int]bool), make(map[int]bool)
 
-	for _,line:= range lines {
-		for i:= -1; i<=1; i++ {
+	for _, line := range lines {
+		for i := -1; i <= 1; i++ {
 			yMap[line[0].I+i] = true
 			yMap[line[1].I+i] = true
 			xMap[line[0].J+i] = true
@@ -157,11 +157,11 @@ func getImportantYandXvals(lines [][2]coords.Coord) (map[int]bool, map[int]bool)
 		}
 	}
 
-	return yMap,xMap
+	return yMap, xMap
 }
 
 func hitsAWall(line [2]coords.Coord, walls [][2]coords.Coord) bool {
-	for _, wall:= range walls {
+	for _, wall := range walls {
 		if segmentsIntersect(line, wall) {
 			return true
 		}
@@ -170,25 +170,25 @@ func hitsAWall(line [2]coords.Coord, walls [][2]coords.Coord) bool {
 	return false
 }
 
-func segmentsIntersect(a,b [2]coords.Coord) bool {
-	aTop, aBottom:= ints.MinMax([]int{a[0].I,a[1].I})
-	aLeft, aRight:= ints.MinMax([]int{a[0].J,a[1].J})
-	bTop, bBottom:= ints.MinMax([]int{b[0].I,b[1].I})
-	bLeft, bRight:= ints.MinMax([]int{b[0].J,b[1].J})
+func segmentsIntersect(a, b [2]coords.Coord) bool {
+	aTop, aBottom := ints.MinMax([]int{a[0].I, a[1].I})
+	aLeft, aRight := ints.MinMax([]int{a[0].J, a[1].J})
+	bTop, bBottom := ints.MinMax([]int{b[0].I, b[1].I})
+	bLeft, bRight := ints.MinMax([]int{b[0].J, b[1].J})
 
-	if aTop<bTop && aBottom<bTop {
+	if aTop < bTop && aBottom < bTop {
 		return false
 	}
 
-	if aBottom>bBottom && aTop>bBottom {
+	if aBottom > bBottom && aTop > bBottom {
 		return false
 	}
 
-	if aLeft<bLeft && aRight<bLeft {
+	if aLeft < bLeft && aRight < bLeft {
 		return false
 	}
 
-	if aRight>bRight && aLeft>bRight {
+	if aRight > bRight && aLeft > bRight {
 		return false
 	}
 

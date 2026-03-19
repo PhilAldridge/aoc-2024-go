@@ -151,7 +151,7 @@ func traverseMapReverse(maze []string, start, end coords.Coord) int {
 		}
 
 		for pos, val := range scoreMap {
-			if val >= nextVal.score || val + 11 < prevVal {
+			if val >= nextVal.score || val+11 < prevVal {
 				continue
 			}
 
@@ -176,7 +176,7 @@ func traverseMapReverse(maze []string, start, end coords.Coord) int {
 
 		scoreMap[nextVal.pos] = nextVal.score
 		prevVal = nextVal.score
-		
+
 		if nextVal.char == 'S' {
 			return nextVal.score
 		}

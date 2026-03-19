@@ -52,7 +52,7 @@ func part1(name string) string {
 func part2(name string) string {
 	maze, key := parseInput(name)
 
-	rounds:=100
+	rounds := 100
 
 	width := len(maze[0])
 	height := len(maze)
@@ -61,7 +61,7 @@ func part2(name string) string {
 
 	doubleUp(changeMap, rounds)
 
-	finalMaze:= mapToFinalPosition(maze,changeMap,rounds)
+	finalMaze := mapToFinalPosition(maze, changeMap, rounds)
 
 	return getDecodedString(finalMaze)
 }
@@ -77,7 +77,7 @@ func part3(name string) string {
 
 	doubleUp(changeMap, rounds)
 
-	finalMaze:= mapToFinalPosition(maze,changeMap,rounds)
+	finalMaze := mapToFinalPosition(maze, changeMap, rounds)
 
 	printMaze(finalMaze)
 
@@ -219,7 +219,7 @@ func getRoundChangeMap(height, width int, key []rune) map[state]coords.Coord {
 
 func doubleUp(changeMap map[state]coords.Coord, rounds int) {
 	statesToCheck := []stateToAdd{}
-	power:=1
+	power := 1
 
 	for k, v := range changeMap {
 		statesToCheck = append(statesToCheck, stateToAdd{
@@ -228,9 +228,9 @@ func doubleUp(changeMap map[state]coords.Coord, rounds int) {
 		})
 	}
 
-	for rounds%2 ==0 {
+	for rounds%2 == 0 {
 		toAdd := []stateToAdd{}
-		rounds /=2
+		rounds /= 2
 		for _, stateToCheck := range statesToCheck {
 			toAdd = append(toAdd, stateToAdd{
 				state: state{
@@ -244,25 +244,25 @@ func doubleUp(changeMap map[state]coords.Coord, rounds int) {
 		for _, newState := range toAdd {
 			changeMap[newState.state] = newState.newPosition
 		}
-		power *=2
+		power *= 2
 		statesToCheck = toAdd
 	}
 
 	for rounds%5 == 0 {
 		toAdd := []stateToAdd{}
-		rounds /=5
+		rounds /= 5
 		for _, stateToCheck := range statesToCheck {
-			position := coords.NewCoord(stateToCheck.state.position.I,stateToCheck.state.position.J)
+			position := coords.NewCoord(stateToCheck.state.position.I, stateToCheck.state.position.J)
 			for range 5 {
 				position = changeMap[state{
 					position: position,
-					rounds: power,
+					rounds:   power,
 				}]
 			}
 			toAdd = append(toAdd, stateToAdd{
 				state: state{
 					position: stateToCheck.state.position,
-					rounds: power * 5,
+					rounds:   power * 5,
 				},
 				newPosition: position,
 			})
@@ -271,7 +271,7 @@ func doubleUp(changeMap map[state]coords.Coord, rounds int) {
 		for _, newState := range toAdd {
 			changeMap[newState.state] = newState.newPosition
 		}
-		power *=5
+		power *= 5
 		statesToCheck = toAdd
 	}
 }
@@ -280,14 +280,14 @@ func mapToFinalPosition(maze [][]rune, changeMap map[state]coords.Coord, rounds 
 	width := len(maze[0])
 	height := len(maze)
 
-	finalMaze:= make([][]rune,height)
-	for i:=range height {
+	finalMaze := make([][]rune, height)
+	for i := range height {
 		finalMaze[i] = make([]rune, width)
 	}
 
-	for i:=range height {
-		for j:= range width {
-			position := changeMap[state{position: coords.NewCoord(i,j), rounds: rounds}]
+	for i := range height {
+		for j := range width {
+			position := changeMap[state{position: coords.NewCoord(i, j), rounds: rounds}]
 
 			finalMaze[position.I][position.J] = maze[i][j]
 		}

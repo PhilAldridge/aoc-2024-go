@@ -18,7 +18,6 @@ func main() {
 	split2 := time.Now()
 	fmt.Println("Part 3 answer: ", part3("input3.txt"))
 
-	
 	fmt.Println()
 	fmt.Println("Part 1: ", split.Sub(start))
 	fmt.Println("Part 2: ", split2.Sub(split))
@@ -26,8 +25,8 @@ func main() {
 }
 
 func part1(name string) int {
-	stars:= getStars(name)
-	constellations:= getConstellations(stars, math.MaxInt)
+	stars := getStars(name)
+	constellations := getConstellations(stars, math.MaxInt)
 
 	return constellations[0].Score()
 }
@@ -36,12 +35,11 @@ func part2(name string) int {
 	return part1(name)
 }
 
-
 func part3(name string) int {
-	stars:= getStars(name)
-	constellations:= getConstellations(stars, 5)
+	stars := getStars(name)
+	constellations := getConstellations(stars, 5)
 
-	slices.SortFunc(constellations, func(a,b constellationType) int {
+	slices.SortFunc(constellations, func(a, b constellationType) int {
 		return b.Score() - a.Score()
 	})
 
@@ -49,12 +47,12 @@ func part3(name string) int {
 }
 
 func getStars(name string) []coords.Coord {
-	lines:= files.ReadLines(name)
+	lines := files.ReadLines(name)
 	var stars []coords.Coord
-	for i,row:= range lines{
-		for j,char:= range row {
+	for i, row := range lines {
+		for j, char := range row {
 			if char == '*' {
-				stars = append(stars, coords.NewCoord(i,j))
+				stars = append(stars, coords.NewCoord(i, j))
 			}
 		}
 	}
@@ -64,12 +62,12 @@ func getStars(name string) []coords.Coord {
 
 func getDistances(stars []coords.Coord) []distance {
 	var distances []distance
-	for i:= range stars {
-		for j:=i+1; j<len(stars); j++ {
+	for i := range stars {
+		for j := i + 1; j < len(stars); j++ {
 			distances = append(distances, distance{
-				a: stars[i],
-				b: stars[j],
-				distance: coords.ManhattanDistance(stars[i],stars[j]),
+				a:        stars[i],
+				b:        stars[j],
+				distance: coords.ManhattanDistance(stars[i], stars[j]),
 			})
 		}
 	}
@@ -78,31 +76,31 @@ func getDistances(stars []coords.Coord) []distance {
 }
 
 func getConstellations(stars []coords.Coord, maxDistance int) []constellationType {
-	distances:= getDistances(stars)
-	slices.SortFunc(distances, func(a,b distance) int {
+	distances := getDistances(stars)
+	slices.SortFunc(distances, func(a, b distance) int {
 		return a.distance - b.distance
 	})
 
 	var constellations []constellationType
-	for _,star:= range stars {
+	for _, star := range stars {
 		constellations = append(constellations, constellationType{stars: []coords.Coord{star}})
 	}
 
-	for len(constellations)>1 {
-		nextConnection:= distances[0]
+	for len(constellations) > 1 {
+		nextConnection := distances[0]
 		distances = distances[1:]
 
 		if nextConnection.distance > maxDistance {
 			break
 		}
 
-		aIndex := slices.IndexFunc(constellations,func(constellation constellationType) bool {
+		aIndex := slices.IndexFunc(constellations, func(constellation constellationType) bool {
 			return slices.ContainsFunc(constellation.stars, func(star coords.Coord) bool {
 				return star.Equals(nextConnection.a)
 			})
 		})
 
-		bIndex := slices.IndexFunc(constellations,func(constellation constellationType) bool {
+		bIndex := slices.IndexFunc(constellations, func(constellation constellationType) bool {
 			return slices.ContainsFunc(constellation.stars, func(star coords.Coord) bool {
 				return star.Equals(nextConnection.b)
 			})
@@ -117,12 +115,12 @@ func getConstellations(stars []coords.Coord, maxDistance int) []constellationTyp
 		}
 
 		newConstellations := []constellationType{{
-			stars: append(constellations[aIndex].stars,constellations[bIndex].stars...),
+			stars:          append(constellations[aIndex].stars, constellations[bIndex].stars...),
 			totalDistances: constellations[aIndex].totalDistances + constellations[bIndex].totalDistances + nextConnection.distance,
 		}}
 
-		for i:= range constellations {
-			if i == aIndex || i ==bIndex {
+		for i := range constellations {
+			if i == aIndex || i == bIndex {
 				continue
 			}
 
@@ -136,12 +134,12 @@ func getConstellations(stars []coords.Coord, maxDistance int) []constellationTyp
 }
 
 type distance struct {
-	a,b coords.Coord
+	a, b     coords.Coord
 	distance int
 }
 
 type constellationType struct {
-	stars []coords.Coord
+	stars          []coords.Coord
 	totalDistances int
 }
 

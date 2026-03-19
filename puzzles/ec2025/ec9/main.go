@@ -44,7 +44,7 @@ func part2(name string) int {
 
 func part3(name string) int {
 	dnaStrands := parseInput(name)
-	
+
 	families := []*sets.Set[int]{}
 
 	for id := range dnaStrands {
@@ -73,7 +73,7 @@ func part3(name string) int {
 	}
 
 	maxMembers := 0
-	score:=0
+	score := 0
 
 	for _, family := range families {
 		if family.Size() > maxMembers {

@@ -17,12 +17,12 @@ func main() {
 
 func part1(name string) int {
 	dial := 50
-	MAX_VALUE:= 99
-	modulo:= MAX_VALUE + 1
-	zeroCount:=0
+	MAX_VALUE := 99
+	modulo := MAX_VALUE + 1
+	zeroCount := 0
 	lines := files.ReadLines(name)
-	for _, l:= range lines {
-		amount,err := strconv.Atoi(l[1:])
+	for _, l := range lines {
+		amount, err := strconv.Atoi(l[1:])
 		if err != nil {
 			panic(err)
 		}
@@ -33,8 +33,8 @@ func part1(name string) int {
 			dial += amount
 		}
 
-		if dial % modulo ==0 {
-			zeroCount ++
+		if dial%modulo == 0 {
+			zeroCount++
 		}
 	}
 	return zeroCount
@@ -42,35 +42,35 @@ func part1(name string) int {
 
 func part2(name string) int {
 	dial := 50
-	MAX_VALUE:= 99
-	modulo:= MAX_VALUE + 1
-	zeroCount:=0
+	MAX_VALUE := 99
+	modulo := MAX_VALUE + 1
+	zeroCount := 0
 	lines := files.ReadLines(name)
-	for _, l:= range lines {
-		amount,err := strconv.Atoi(l[1:])
+	for _, l := range lines {
+		amount, err := strconv.Atoi(l[1:])
 		if err != nil {
 			panic(err)
 		}
 
-		zeroCount += amount/(modulo)
+		zeroCount += amount / (modulo)
 		amount %= (modulo)
 
 		if l[0] == 'L' {
-			wasZero:= dial==0
+			wasZero := dial == 0
 			dial -= amount
 			if dial < 0 {
 				dial += modulo
 				if !wasZero {
-					zeroCount ++
+					zeroCount++
 				}
 			} else if dial == 0 {
-				zeroCount ++
+				zeroCount++
 			}
-		} else {			
+		} else {
 			dial += amount
 			if dial > MAX_VALUE {
 				dial -= modulo
-				zeroCount ++
+				zeroCount++
 			}
 		}
 	}

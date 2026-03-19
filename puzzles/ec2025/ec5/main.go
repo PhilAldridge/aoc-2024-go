@@ -50,7 +50,7 @@ func part2(name string) int {
 		split1 := strings.Split(sword, ":")
 		split2 := strings.Split(split1[1], ",")
 		vals := ints.FromStringSlice(split2)
-		quality,_ := calculateQuality(vals)
+		quality, _ := calculateQuality(vals)
 		if quality < min {
 			min = quality
 		}
@@ -59,39 +59,39 @@ func part2(name string) int {
 		}
 	}
 
-	return max-min
+	return max - min
 }
 
 func part3(name string) int {
 	input := files.ReadLines(name)
-	swords:= []swordType{}
+	swords := []swordType{}
 
 	for _, sword := range input {
 		split1 := strings.Split(sword, ":")
 		split2 := strings.Split(split1[1], ",")
 		vals := ints.FromStringSlice(split2)
-		quality,fishbone := calculateQuality(vals)
+		quality, fishbone := calculateQuality(vals)
 		swords = append(swords, swordType{
-			id: ints.FromString(split1[0]),
-			quality:quality,
-			fishbone:fishbone,
+			id:       ints.FromString(split1[0]),
+			quality:  quality,
+			fishbone: fishbone,
 		})
 	}
 
-	slices.SortFunc(swords, func(a,b swordType) int {
+	slices.SortFunc(swords, func(a, b swordType) int {
 		// Test quality first
 		if a.quality != b.quality {
 			return b.quality - a.quality
 		}
 
 		// Then value of each vertebrae
-		for i:= range a.fishbone {
-			if i>= len(b.fishbone) {
+		for i := range a.fishbone {
+			if i >= len(b.fishbone) {
 				return -1
 			}
 
-			aVal:= a.fishbone[i].value()
-			bVal:= b.fishbone[i].value()
+			aVal := a.fishbone[i].value()
+			bVal := b.fishbone[i].value()
 
 			if aVal != bVal {
 				return bVal - aVal
@@ -106,17 +106,17 @@ func part3(name string) int {
 		return b.id - a.id
 	})
 
-	total:=0
-	for i,sword:= range swords {
-		total += (i+1)*sword.id
+	total := 0
+	for i, sword := range swords {
+		total += (i + 1) * sword.id
 	}
 
 	return total
 }
 
 type swordType struct {
-	id,quality int
-	fishbone []vertebrae
+	id, quality int
+	fishbone    []vertebrae
 }
 
 func intPtrOrEmpty(p *int) string {
@@ -126,7 +126,7 @@ func intPtrOrEmpty(p *int) string {
 	return fmt.Sprintf("%d", *p)
 }
 
-func calculateQuality(vals []int) (int,[]vertebrae) {
+func calculateQuality(vals []int) (int, []vertebrae) {
 	currentVertebae := vertebrae{val: vals[0]}
 
 	fishbone := []vertebrae{currentVertebae}
@@ -156,10 +156,10 @@ func calculateQuality(vals []int) (int,[]vertebrae) {
 		result += strconv.Itoa(vertebrae.val)
 	}
 
-	return ints.FromString(result),fishbone
+	return ints.FromString(result), fishbone
 }
 
 func (v vertebrae) value() int {
-	answer:= intPtrOrEmpty(v.left) + strconv.Itoa(v.val) + intPtrOrEmpty(v.right)
+	answer := intPtrOrEmpty(v.left) + strconv.Itoa(v.val) + intPtrOrEmpty(v.right)
 	return ints.FromString(answer)
 }

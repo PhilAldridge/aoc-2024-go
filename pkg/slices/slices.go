@@ -18,9 +18,9 @@ func SlidingWindow(slice []int, size int) [][]int {
 func StringSliceToStringMapStringSlice(input []string, separator1 string, separator2 string) map[string][]string {
 	result := make(map[string][]string)
 
-	for _,line:= range input {
-		split1:= strings.Split(line,separator1)
-		split2:= strings.Split(split1[1],separator2)
+	for _, line := range input {
+		split1 := strings.Split(line, separator1)
+		split2 := strings.Split(split1[1], separator2)
 
 		result[split1[0]] = split2
 	}
@@ -31,9 +31,9 @@ func StringSliceToStringMapStringSlice(input []string, separator1 string, separa
 func StringSliceToStringMapIntSlice(input []string, separator1 string, separator2 string) map[string][]int {
 	result := make(map[string][]int)
 
-	for _,line:= range input {
-		split1:= strings.Split(line,separator1)
-		split2:= strings.Split(split1[1],separator2)
+	for _, line := range input {
+		split1 := strings.Split(line, separator1)
+		split2 := strings.Split(split1[1], separator2)
 
 		result[split1[0]] = ints.FromStringSlice(split2)
 	}
@@ -44,9 +44,9 @@ func StringSliceToStringMapIntSlice(input []string, separator1 string, separator
 func StringSliceToIntMapIntSlice(input []string, separator1 string, separator2 string) map[int][]int {
 	result := make(map[int][]int)
 
-	for _,line:= range input {
-		split1:= strings.Split(line,separator1)
-		split2:= strings.Split(split1[1],separator2)
+	for _, line := range input {
+		split1 := strings.Split(line, separator1)
+		split2 := strings.Split(split1[1], separator2)
 
 		result[ints.FromString(split1[0])] = ints.FromStringSlice(split2)
 	}

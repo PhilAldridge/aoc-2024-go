@@ -43,12 +43,12 @@ func part2(name string) int {
 	program := ints.FromStringSlice(strings.Split(
 		strings.Replace(lines[4], "Program: ", "", -1),
 		","))
-	
+
 	prev := []int{5}
 	output := []string{}
 	for len(output) < len(program) {
-		newPrev:= []int{}
-		for _,p:= range prev {
+		newPrev := []int{}
+		for _, p := range prev {
 			for a := p * 8; a < p*8+8; a++ {
 				output = []string{}
 				A := a
@@ -56,25 +56,24 @@ func part2(name string) int {
 				C := Cstatic
 				pointer = 0
 				stopper := 0
-				
+
 				for pointer < len(program)-1 && stopper < 10000 {
 					calculate(&A, &B, &C, program[pointer], program[pointer+1], &pointer, &output)
 					stopper++
 				}
-				if ints.FromString(output[0])==program[len(program)-len(output)] {
+				if ints.FromString(output[0]) == program[len(program)-len(output)] {
 					newPrev = append(newPrev, a)
 					if len(output) == len(program) {
 						return a
 					}
 				}
-		
+
 				//fmt.Printf("a: %d, output: %v\n", a, output)
 			}
 		}
 		prev = newPrev
-		
+
 	}
-	
 
 	panic("not found")
 }
@@ -151,7 +150,7 @@ func calculate2(A *int, B *int, C *int, instruction int, operand int, pointer *i
 		*pointer += 2
 	case 5:
 		out := combo % 8
-	
+
 		*output = append(*output, strconv.Itoa(out))
 		*pointer += 2
 		if out == expected {

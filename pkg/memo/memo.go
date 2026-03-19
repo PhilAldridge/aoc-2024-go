@@ -115,7 +115,7 @@ func MemoizeSingleFlightRecursive[T comparable, R any](fn func(self func(T) R, a
 
 		return val.(R)
 	}
-	
+
 	return memoized
 }
 

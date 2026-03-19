@@ -80,14 +80,14 @@ func part3(name string) int {
 
 		queue := []queueType{{
 			state: state{position: start},
-			score:    0,
+			score: 0,
 		}}
 
 		visitedMap := map[state]int{{
 			position: start,
 		}: 0}
 
-		maxTime := (r+1) * 30
+		maxTime := (r + 1) * 30
 
 		for len(queue) > 0 {
 			next := queue[0]
@@ -130,7 +130,7 @@ func part3(name string) int {
 				visitedMap[newState] = newScore
 				queue = append(queue, queueType{
 					state: newState,
-					score:    newScore,
+					score: newScore,
 				})
 			}
 
@@ -141,11 +141,11 @@ func part3(name string) int {
 
 		if score := visitedMap[state{
 			position: start,
-			left: true,
-			down: true,
-			right: true,
+			left:     true,
+			down:     true,
+			right:    true,
 		}]; score > 0 {
-			fmt.Println(score,r)
+			fmt.Println(score, r)
 			return score * r
 		}
 

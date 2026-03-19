@@ -60,12 +60,12 @@ func Max(numbers []int) int {
 func Mean(numbers []int) int {
 	m := 0
 	for _, num := range numbers {
-		m+=num
+		m += num
 	}
-	return m/len(numbers)
+	return m / len(numbers)
 }
 
-func MinMax(numbers []int) (int,int) {
+func MinMax(numbers []int) (int, int) {
 	m := numbers[0]
 	n := numbers[0]
 	for _, num := range numbers {
@@ -77,7 +77,7 @@ func MinMax(numbers []int) (int,int) {
 			n = num
 		}
 	}
-	return m,n
+	return m, n
 }
 
 func AllSame(numbers []int) bool {
@@ -89,9 +89,9 @@ func AllSame(numbers []int) bool {
 	return true
 }
 
-func Pow (base int, exp int) int {
-	res:=1
-	for exp>0 {
+func Pow(base int, exp int) int {
+	res := 1
+	for exp > 0 {
 		res *= base
 		exp--
 	}
@@ -99,17 +99,17 @@ func Pow (base int, exp int) int {
 }
 
 func CountDigits(num int) int {
-    if num == 0 {
-        return 1 // Special case for 0, which has 1 digit
-    }
-    return int(math.Log10(float64(num))) + 1
+	if num == 0 {
+		return 1 // Special case for 0, which has 1 digit
+	}
+	return int(math.Log10(float64(num))) + 1
 }
 
 func GCD(a, b int) int {
-	if a< 0 {
+	if a < 0 {
 		a *= -1
 	}
-	if b<0 {
+	if b < 0 {
 		b *= -1
 	}
 	for b != 0 {
@@ -120,54 +120,58 @@ func GCD(a, b int) int {
 	return a
 }
 
-func LCM(a,b int) int {
-	if a< 0 {
+func LCM(a, b int) int {
+	if a < 0 {
 		a *= -1
 	}
-	if b<0 {
+	if b < 0 {
 		b *= -1
 	}
-	return (a*b)/GCD(a,b)
+	return (a * b) / GCD(a, b)
 }
 
 func Mod(x, d int) int {
-  if d < 0 { d = -d }
-  x = x % d
-  if x < 0 { return x + d }
-  return x
+	if d < 0 {
+		d = -d
+	}
+	x = x % d
+	if x < 0 {
+		return x + d
+	}
+	return x
 }
 
-func GetIntsBetween(a,b int) []int {
-	result:= []int{}
+func GetIntsBetween(a, b int) []int {
+	result := []int{}
 
-	if a<b {
-		for i:= a+1; i<b; i++ {
+	if a < b {
+		for i := a + 1; i < b; i++ {
 			result = append(result, i)
 		}
-	} else if b<a {
-		for i:=b+1; i<a; i++ {
+	} else if b < a {
+		for i := b + 1; i < a; i++ {
 			result = append(result, i)
 		}
 	}
 	return result
 }
 
-func GetIntsBetweenInclusive(a,b int) []int {
-	result:= []int{}
+func GetIntsBetweenInclusive(a, b int) []int {
+	result := []int{}
 
-	if a<b {
-		for i:= a; i<=b; i++ {
+	if a < b {
+		for i := a; i <= b; i++ {
 			result = append(result, i)
 		}
 	} else {
-		for i:=b; i<=a; i++ {
+		for i := b; i <= a; i++ {
 			result = append(result, i)
 		}
 	}
 	return result
 }
 
-func IsBetween(a,b,c int) bool {
+func IsBetween(a, b, c int) bool {
 	if a < b && a > c {
 		return true
 	}
@@ -180,30 +184,30 @@ func IsBetween(a,b,c int) bool {
 }
 
 func Factorial(a int) int {
-	total:=1
-	for i:=2; i<=a; i++ {
-		total*=i
+	total := 1
+	for i := 2; i <= a; i++ {
+		total *= i
 	}
 	return total
 }
 
 func SumMap[T comparable](mapping map[T]int) int {
-	total:= 0
+	total := 0
 
-	for _, val:= range mapping {
+	for _, val := range mapping {
 		total += val
 	}
 
 	return total
 }
 
-func ModularDifference(a,b,mod int) int {
-	try1:= a-b
+func ModularDifference(a, b, mod int) int {
+	try1 := a - b
 	if try1 < 0 {
-		try1 +=mod
+		try1 += mod
 	}
 
-	try2:=b-a
+	try2 := b - a
 	if try2 < 0 {
 		try2 += mod
 	}

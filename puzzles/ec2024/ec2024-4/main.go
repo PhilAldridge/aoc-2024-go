@@ -17,7 +17,6 @@ func main() {
 	split2 := time.Now()
 	fmt.Println("Part 3 answer: ", part3("input3.txt"))
 
-	
 	fmt.Println()
 	fmt.Println("Part 1: ", split.Sub(start))
 	fmt.Println("Part 2: ", split2.Sub(split))
@@ -25,15 +24,15 @@ func main() {
 }
 
 func part1(name string) int {
-	total:= 0
+	total := 0
 
-	nails:= parseInput(name)
+	nails := parseInput(name)
 
-	min:= ints.Min(nails)
+	min := ints.Min(nails)
 
-	for _,nail := range nails {
-		if nail>min {
-			total+= nail-min
+	for _, nail := range nails {
+		if nail > min {
+			total += nail - min
 		}
 	}
 
@@ -41,40 +40,38 @@ func part1(name string) int {
 }
 
 func part2(name string) int {
-	total:= 0
+	total := 0
 
-	nails:= parseInput(name)
+	nails := parseInput(name)
 
-	min:= ints.Min(nails)
+	min := ints.Min(nails)
 
-	for _,nail := range nails {
-		if nail>min {
-			total+= nail-min
+	for _, nail := range nails {
+		if nail > min {
+			total += nail - min
 		}
 	}
 
 	return total
 }
 
-
 func part3(name string) int {
-	total:= 0
+	total := 0
 
-	nails:= parseInput(name)
-	
+	nails := parseInput(name)
+
 	slices.Sort(nails)
 
-	median:= nails[len(nails)/2]
+	median := nails[len(nails)/2]
 
-	for _,nail := range nails {
-		total += ints.Abs(median-nail)
+	for _, nail := range nails {
+		total += ints.Abs(median - nail)
 	}
 
 	return total
 }
 
 func parseInput(name string) []int {
-	lines:= files.ReadLines(name)
+	lines := files.ReadLines(name)
 	return ints.FromStringSlice(lines)
 }
-

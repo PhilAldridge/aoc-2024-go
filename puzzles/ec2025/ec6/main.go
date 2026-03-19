@@ -15,9 +15,8 @@ func main() {
 	split := time.Now()
 	fmt.Println("Part 2 answer: ", part2("input2.txt"))
 	split2 := time.Now()
-	fmt.Println("Part 3 answer: ", part3("input3.txt",1000,1000))
+	fmt.Println("Part 3 answer: ", part3("input3.txt", 1000, 1000))
 
-	
 	fmt.Println()
 	fmt.Println("Part 1: ", split.Sub(start))
 	fmt.Println("Part 2: ", split2.Sub(split))
@@ -25,16 +24,16 @@ func main() {
 }
 
 func part1(name string) int {
-	input:= files.Read(name)
-	mentorCount:=0
-	total:= 0
+	input := files.Read(name)
+	mentorCount := 0
+	total := 0
 
-	for _, char:= range input {
+	for _, char := range input {
 		if char == 'A' {
 			mentorCount++
 		}
 		if char == 'a' {
-			total+=mentorCount
+			total += mentorCount
 		}
 	}
 
@@ -42,60 +41,58 @@ func part1(name string) int {
 }
 
 func part2(name string) int {
-	input:= files.Read(name)
-	mentorCount:=make(map[rune]int)
-	total:=0
+	input := files.Read(name)
+	mentorCount := make(map[rune]int)
+	total := 0
 
-	for _, char:= range input {
-		if char >= 'A' && char <='Z' {
+	for _, char := range input {
+		if char >= 'A' && char <= 'Z' {
 			mentorCount[char]++
 			continue
 		}
-		total+=mentorCount[unicode.ToUpper(char)]
+		total += mentorCount[unicode.ToUpper(char)]
 	}
-
 
 	return total
 }
 
-
 func part3(name string, repeats, distanceLimit int) int {
-	input:= files.Read(name)
-	total:=0
-	mentorPos:=make(map[rune][]int)
-	novicePos:=make(map[rune][]int)
+	input := files.Read(name)
+	total := 0
+	mentorPos := make(map[rune][]int)
+	novicePos := make(map[rune][]int)
 
-	for i, char:= range input {
-		if char >= 'A' && char <='Z' {
-			addToMap(char, i,len(input),repeats,mentorPos)
+	for i, char := range input {
+		if char >= 'A' && char <= 'Z' {
+			addToMap(char, i, len(input), repeats, mentorPos)
 			continue
 		}
-		addToMap(unicode.ToUpper(char),i,len(input),repeats,novicePos)
+		addToMap(unicode.ToUpper(char), i, len(input), repeats, novicePos)
 	}
 
-	for novice, positions:= range novicePos {
-		mentorPositions:= mentorPos[novice]
+	for novice, positions := range novicePos {
+		mentorPositions := mentorPos[novice]
 		slices.Sort(positions)
 		slices.Sort(mentorPositions)
-		fmt.Println(string(novice),len(positions),len(mentorPositions))
-		
-		mentorMinI:=0
+		fmt.Println(string(novice), len(positions), len(mentorPositions))
 
-		for _, position:= range positions {
-			min:= position - distanceLimit
-			max:= position + distanceLimit
+		mentorMinI := 0
 
-			for i:= mentorMinI; i<len(mentorPositions); i++ {
+		for _, position := range positions {
+			min := position - distanceLimit
+			max := position + distanceLimit
+
+			for i := mentorMinI; i < len(mentorPositions); i++ {
 				mentorPosition := mentorPositions[i]
-				if mentorPosition<min {
+				if mentorPosition < min {
 					mentorMinI = i
 					continue
 				}
-				if mentorPosition>max {
+				if mentorPosition > max {
 					break
 				}
-				
-				total ++
+
+				total++
 			}
 		}
 	}
@@ -104,10 +101,9 @@ func part3(name string, repeats, distanceLimit int) int {
 }
 
 func addToMap(char rune, pos, length, repeats int, mapping map[rune][]int) {
-	max:= length*repeats
-	for pos<max {
+	max := length * repeats
+	for pos < max {
 		mapping[char] = append(mapping[char], pos)
 		pos += length
 	}
 }
-

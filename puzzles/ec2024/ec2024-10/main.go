@@ -82,7 +82,7 @@ func part3(name string) int {
 
 								//Use filled in value to complete row
 								if rowSet.Contains('?') && !columnSet.Contains('?') && !rowSet.Contains(lines[i+i2][j+j2]) {
-									for _, offset:= range offsets {
+									for _, offset := range offsets {
 										if lines[i+i2][j+offset] == '?' {
 											lines[i+i2][j+offset] = lines[i+i2][j+j2]
 											break
@@ -93,8 +93,8 @@ func part3(name string) int {
 								}
 
 								//Use filled in value to complete column
-								if columnSet.Contains('?') && !rowSet.Contains('?') && !columnSet.Contains(lines[i+i2][j+j2]) {									
-									for _, offset:= range offsets {
+								if columnSet.Contains('?') && !rowSet.Contains('?') && !columnSet.Contains(lines[i+i2][j+j2]) {
+									for _, offset := range offsets {
 										if lines[i+offset][j+j2] == '?' {
 											lines[i+offset][j+j2] = lines[i+i2][j+j2]
 											break

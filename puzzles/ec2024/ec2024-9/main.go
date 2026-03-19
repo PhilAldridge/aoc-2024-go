@@ -29,7 +29,7 @@ func part1(name string) int {
 	total := 0
 	stamps, targets := parseInput(name)
 
-	minSteps:= mapMinimumSteps(stamps, ints.Max(targets))
+	minSteps := mapMinimumSteps(stamps, ints.Max(targets))
 	for _, target := range targets {
 		total += minSteps[target]
 	}
@@ -45,9 +45,9 @@ func part3(name string) int {
 	total := 0
 	stamps, targets := parseInput(name)
 
-	minSteps:= mapMinimumSteps(stamps, ints.Max(targets))
+	minSteps := mapMinimumSteps(stamps, ints.Max(targets))
 
-	for _, target:= range targets {
+	for _, target := range targets {
 		total += getBestSplit(target, minSteps)
 	}
 
@@ -92,23 +92,23 @@ func mapMinimumSteps(stamps []int, maxTarget int) map[int]int {
 }
 
 func getBestSplit(target int, minSteps map[int]int) int {
-	best:= math.MaxInt
+	best := math.MaxInt
 
-	for i:=target/2 - 49; i<=target/2; i++ {
+	for i := target/2 - 49; i <= target/2; i++ {
 		// if target - i - i > 100 {
 		// 	continue
 		// }
 
-		split1, ok:= minSteps[i]
+		split1, ok := minSteps[i]
 		if !ok {
 			continue
 		}
-		split2,ok := minSteps[target-i]
+		split2, ok := minSteps[target-i]
 		if !ok {
 			continue
 		}
 
-		total:= split1 + split2
+		total := split1 + split2
 
 		if total < best {
 			best = total
@@ -116,7 +116,7 @@ func getBestSplit(target int, minSteps map[int]int) int {
 	}
 
 	if best == math.MaxInt {
-		panic(fmt.Sprintf("could not find split %d",target))
+		panic(fmt.Sprintf("could not find split %d", target))
 	}
 
 	return best

@@ -6,71 +6,71 @@ import (
 
 // Set is a collection of unique elements
 type Set[T comparable] struct {
-    elements map[T]struct{}
+	elements map[T]struct{}
 }
 
 // NewSet creates a new set
 func NewSet[T comparable]() *Set[T] {
-    return &Set[T]{
-        elements: make(map[T]struct{}),
-    }
+	return &Set[T]{
+		elements: make(map[T]struct{}),
+	}
 }
 
 // Add inserts an element into the set
 func (s *Set[T]) Add(value T) {
-    s.elements[value] = struct{}{}
+	s.elements[value] = struct{}{}
 }
 
 // Remove deletes an element from the set
 func (s *Set[T]) Remove(value T) {
-    delete(s.elements, value)
+	delete(s.elements, value)
 }
 
 // Contains checks if an element is in the set
 func (s *Set[T]) Contains(value T) bool {
-    _, found := s.elements[value]
-    return found
+	_, found := s.elements[value]
+	return found
 }
 
 // Size returns the number of elements in the set
 func (s *Set[T]) Size() int {
-    return len(s.elements)
+	return len(s.elements)
 }
 
 // List returns all elements in the set as a slice
 func (s *Set[T]) List() []T {
-    keys := make([]T, 0, len(s.elements))
-    for key := range s.elements {
-        keys = append(keys, key)
-    }
-    return keys
+	keys := make([]T, 0, len(s.elements))
+	for key := range s.elements {
+		keys = append(keys, key)
+	}
+	return keys
 }
 
 func (s *Set[T]) AddSlice(values []T) {
-    for _,value:= range values {
-        s.Add(value)
-    }
+	for _, value := range values {
+		s.Add(value)
+	}
 }
 
 func (s *Set[T]) IntersectSlice(values []T) {
-    keys:= s.List()
-    for _,key := range keys {
-        if !slices.Contains(values, key) {
-            s.Remove(key)
-        }
-    }
+	keys := s.List()
+	for _, key := range keys {
+		if !slices.Contains(values, key) {
+			s.Remove(key)
+		}
+	}
 }
 
 func Intersection[T comparable](setA *Set[T], setB *Set[T]) *Set[T] {
-    result:= NewSet[T]()
+	result := NewSet[T]()
 
-    a:= setA.List()
+	a := setA.List()
 
-    for _, item:= range a {
-        if setB.Contains(item) {
-            result.Add(item)
-        }
-    }
+	for _, item := range a {
+		if setB.Contains(item) {
+			result.Add(item)
+		}
+	}
 
-    return result
+	return result
 }

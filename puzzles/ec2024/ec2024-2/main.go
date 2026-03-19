@@ -47,16 +47,16 @@ func part2(name string) int {
 	words, input := parseInput(name)
 	words = addReversals(words)
 
-	total:=0
+	total := 0
 
 	for _, line := range input {
-		runicChars:= make(map[int]bool)
+		runicChars := make(map[int]bool)
 		for i := 0; i < len(line); i++ {
 			for _, word := range words {
 				if word[0] == line[i] &&
 					i+len(word) <= len(line) &&
 					word == line[i:i+len(word)] {
-					for j:=0; j<len(word); j++ {
+					for j := 0; j < len(word); j++ {
 						runicChars[i+j] = true
 					}
 				}
@@ -72,41 +72,40 @@ func part3(name string) int {
 	words, input := parseInput(name)
 	words = addReversals(words)
 
-	
-	runicChars:= make(map[[2]int]bool)
+	runicChars := make(map[[2]int]bool)
 
 	for lineIndex, line := range input {
 		for i := 0; i < len(line); i++ {
 			for _, word := range words {
-				if word[0] == line[i]  {
-					runesToAdd:= [][2]int{}
-					for j:=0; j<len(word); j++ {
-						if word[j]==line[(i+j)%len(line)] {
-							runesToAdd = append(runesToAdd, [2]int{lineIndex,(i+j)%len(line)})
+				if word[0] == line[i] {
+					runesToAdd := [][2]int{}
+					for j := 0; j < len(word); j++ {
+						if word[j] == line[(i+j)%len(line)] {
+							runesToAdd = append(runesToAdd, [2]int{lineIndex, (i + j) % len(line)})
 							continue
 						}
 						break
 					}
 					if len(runesToAdd) == len(word) {
-						for _,runeToAdd:= range runesToAdd {
+						for _, runeToAdd := range runesToAdd {
 							runicChars[runeToAdd] = true
 						}
 					}
 
-					runesToAdd= [][2]int{}
-					for j:=0; j<len(word); j++ {
+					runesToAdd = [][2]int{}
+					for j := 0; j < len(word); j++ {
 						if lineIndex+j >= len(input) {
 							break
 						}
 
-						if word[j]==input[(lineIndex+j)][i] {
-							runesToAdd = append(runesToAdd, [2]int{(lineIndex+j),i})
+						if word[j] == input[(lineIndex + j)][i] {
+							runesToAdd = append(runesToAdd, [2]int{(lineIndex + j), i})
 							continue
 						}
 						break
 					}
 					if len(runesToAdd) == len(word) {
-						for _,runeToAdd:= range runesToAdd {
+						for _, runeToAdd := range runesToAdd {
 							runicChars[runeToAdd] = true
 						}
 					}

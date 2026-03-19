@@ -69,24 +69,24 @@ func part3(name string) int {
 	}
 
 	roundsLeft := 1000000000 % (end - start)
-	repeats:= (1000000000 / (end - start))
+	repeats := (1000000000 / (end - start))
 	timesReached := 0
-	repeatScore:=0
+	repeatScore := 0
 
 	for k, v := range gridMap {
 		if centreReached(k, centreGoal) {
-			score:= 0
-			for _,row:= range k {
-				for _,char:= range row {
+			score := 0
+			for _, row := range k {
+				for _, char := range row {
 					if char {
 						score++
 					}
 				}
 			}
 
-			repeatScore +=score
+			repeatScore += score
 			if v-start < roundsLeft {
-				timesReached+=score
+				timesReached += score
 			}
 		}
 	}

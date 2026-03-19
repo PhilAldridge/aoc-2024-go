@@ -113,12 +113,12 @@ func part3(name string) int {
 		queue[0]: 0,
 	}
 
-	directions:= []coords.Coord{
-		coords.NewCoord(0,1),
-		coords.NewCoord(0,0),
-		coords.NewCoord(0,-1),
-		coords.NewCoord(-1,0),
-		coords.NewCoord(1,0),
+	directions := []coords.Coord{
+		coords.NewCoord(0, 1),
+		coords.NewCoord(0, 0),
+		coords.NewCoord(0, -1),
+		coords.NewCoord(-1, 0),
+		coords.NewCoord(1, 0),
 	}
 
 	for len(queue) > 0 {

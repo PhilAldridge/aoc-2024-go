@@ -97,7 +97,7 @@ func part3(name string) int {
 	total := 0
 
 	for _, coord := range meteorCoords {
-		time:= 0
+		time := 0
 		currentPos := [2]int{coord.I, coord.J}
 
 		for {
@@ -178,18 +178,18 @@ func createInvertedRankMap(xSize int) map[[2]int]int {
 			for upDiag := 1; upDiag <= power; upDiag++ {
 				currentPos[0]++
 				currentPos[1]++
-				updateScore(rankMap,currentPos,newScore)
+				updateScore(rankMap, currentPos, newScore)
 			}
 
 			for right := 1; right <= power; right++ {
 				currentPos[1]++
-				updateScore(rankMap,currentPos,newScore)
+				updateScore(rankMap, currentPos, newScore)
 			}
 
 			for currentPos[0] > 0 && currentPos[1] < xSize {
 				currentPos[0]--
 				currentPos[1]++
-				updateScore(rankMap,currentPos,newScore)
+				updateScore(rankMap, currentPos, newScore)
 			}
 		}
 	}

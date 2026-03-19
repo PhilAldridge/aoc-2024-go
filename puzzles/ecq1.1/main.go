@@ -28,19 +28,19 @@ func main() {
 func part1(name string) int {
 	input := files.ReadLines(name)
 	rows := parseInput(input)
-	return getMax(rows,eni1)
+	return getMax(rows, eni1)
 }
 
 func part2(name string) int {
 	input := files.ReadLines(name)
 	rows := parseInput(input)
-	return getMax(rows,eni2)
+	return getMax(rows, eni2)
 }
 
 func part3(name string) int {
 	input := files.ReadLines(name)
 	rows := parseInput(input)
-	return getMax(rows,eni3)
+	return getMax(rows, eni3)
 }
 
 func getMax(rows []inputType, eni func(a, e, m int) int) int {

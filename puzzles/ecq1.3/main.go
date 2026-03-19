@@ -18,7 +18,6 @@ func main() {
 	split2 := time.Now()
 	fmt.Println("Part 3 answer: ", part3("input3.txt"))
 
-	
 	fmt.Println()
 	fmt.Println("Part 1: ", split.Sub(start))
 	fmt.Println("Part 2: ", split2.Sub(split))
@@ -30,59 +29,58 @@ type snailType struct {
 }
 
 func part1(name string) int {
-	input:= files.ReadLines(name)
+	input := files.ReadLines(name)
 
-	snails:= []snailType{}
+	snails := []snailType{}
 
-	for _,row:= range input {
-		split:= strings.Split(row," ")
-		x:= ints.FromString(split[0][2:])
-		y:= ints.FromString(split[1][2:])
+	for _, row := range input {
+		split := strings.Split(row, " ")
+		x := ints.FromString(split[0][2:])
+		y := ints.FromString(split[1][2:])
 
 		snails = append(snails, snailType{
-			ring: x+y-1,
-			startY: y-1,
+			ring:   x + y - 1,
+			startY: y - 1,
 		})
 	}
 
-	total:= 0
+	total := 0
 
-	for _, snail:= range snails {
-		newY:= ints.Mod(snail.startY - 100,snail.ring)
-		newX:= snail.ring - newY
+	for _, snail := range snails {
+		newY := ints.Mod(snail.startY-100, snail.ring)
+		newX := snail.ring - newY
 		total += 100*(newY+1) + newX
 	}
-
 
 	return total
 }
 
 func part2(name string) int {
-	input:= files.ReadLines(name)
+	input := files.ReadLines(name)
 
-	snails:= []snailType{}
+	snails := []snailType{}
 
-	for _,row:= range input {
-		split:= strings.Split(row," ")
-		x:= ints.FromString(split[0][2:])
-		y:= ints.FromString(split[1][2:])
+	for _, row := range input {
+		split := strings.Split(row, " ")
+		x := ints.FromString(split[0][2:])
+		y := ints.FromString(split[1][2:])
 
 		snails = append(snails, snailType{
-			ring: x+y-1,
-			startY: y-1,
+			ring:   x + y - 1,
+			startY: y - 1,
 		})
 	}
 
-	slices.SortFunc(snails, func(a,b snailType) int {
+	slices.SortFunc(snails, func(a, b snailType) int {
 		return b.ring - a.ring
 	})
 
-	n:=0
+	n := 0
 
 	for {
-		time:= snails[0].startY + n*snails[0].ring
+		time := snails[0].startY + n*snails[0].ring
 
-		if checkTime(snails[1:],time) {
+		if checkTime(snails[1:], time) {
 			return time
 		}
 
@@ -90,14 +88,12 @@ func part2(name string) int {
 	}
 }
 
-
 func part3(name string) int {
 	return part2(name)
 }
 
-
 func checkTime(snails []snailType, time int) bool {
-	for _, snail:= range snails {
+	for _, snail := range snails {
 		if ints.Mod(time-snail.startY, snail.ring) != 0 {
 			return false
 		}

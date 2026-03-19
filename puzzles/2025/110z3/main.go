@@ -51,28 +51,27 @@ func part1(name string) int {
 func part2(name string) int {
 	machines := parseInput(name)
 
-	total:= 0
-	for _,machine:= range machines {
-		total+= solveMachine(machine)
+	total := 0
+	for _, machine := range machines {
+		total += solveMachine(machine)
 	}
-
 
 	return total
 }
 
 func solveMachine(machine machine) int {
-	config:= z3.NewConfig()
-	ctx:= z3.NewContext(config)
+	config := z3.NewConfig()
+	ctx := z3.NewContext(config)
 	config.Close()
 	defer ctx.Close()
 
 	s := ctx.NewSolver()
 	defer s.Close()
 
-	xs:= make([]*z3.AST, len(machine.wiring))
+	xs := make([]*z3.AST, len(machine.wiring))
 
-	zero:= ctx.Int(0, ctx.IntSort())
-	sum:= ctx.Int(0,ctx.IntSort())
+	zero := ctx.Int(0, ctx.IntSort())
+	sum := ctx.Int(0, ctx.IntSort())
 
 	for i := range machine.wiring {
 		//create a variable for each wire
@@ -85,32 +84,31 @@ func solveMachine(machine machine) int {
 		s.Assert(xs[i].Ge(zero))
 	}
 
-	for i, jolt:= range machine.joltage {
+	for i, jolt := range machine.joltage {
 		// create equation
-		wires:= []*z3.AST{}
-		for j,wire:= range machine.wiring {
+		wires := []*z3.AST{}
+		for j, wire := range machine.wiring {
 			if slices.Contains(wire, i) {
 				wires = append(wires, xs[j])
 			}
 		}
 
 		//sum of all wires affecting joltage index = joltage
-		s.Assert(zero.Add(wires...).Eq(ctx.Int(jolt,ctx.IntSort())))
+		s.Assert(zero.Add(wires...).Eq(ctx.Int(jolt, ctx.IntSort())))
 	}
 
-	
-	v:=s.Check()
-	total:= 0
+	v := s.Check()
+	total := 0
 
 	//to find minimum solution, create a loop reducing the allowed sum each time, until the problem is unsolvable
-	for v== z3.True {
-		m:= s.Model()
-		total= 0
-		for _,assignment:= range m.Assignments() {
+	for v == z3.True {
+		m := s.Model()
+		total = 0
+		for _, assignment := range m.Assignments() {
 			total += assignment.Int()
 		}
 
-		newTotal:= ctx.Int(total,ctx.IntSort())
+		newTotal := ctx.Int(total, ctx.IntSort())
 		s.Assert(sum.Lt(newTotal))
 
 		v = s.Check()

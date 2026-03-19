@@ -217,9 +217,9 @@ func ManhattanDistance(a Coord, b Coord) int {
 	return x + y
 }
 
-func PythagoreanSquareDistance(a,b Coord) int {
-	iDiff:= a.I-b.I
-	jDiff:= a.J-b.J
+func PythagoreanSquareDistance(a, b Coord) int {
+	iDiff := a.I - b.I
+	jDiff := a.J - b.J
 
 	return iDiff*iDiff + jDiff*jDiff
 }
@@ -237,17 +237,17 @@ func (a Coord) InInput(input []string) bool {
 
 type Lenable interface {
 	~string |
-	~[]byte |
-	~[]bool |
-	~[]rune |
-	~[]int |
-	~[]any |
-	~map[string]int |
-	~map[string]string
+		~[]byte |
+		~[]bool |
+		~[]rune |
+		~[]int |
+		~[]any |
+		~map[string]int |
+		~map[string]string
 }
 
 func GenericInInput[T Lenable](a Coord, input []T) bool {
-		if a.I < 0 || a.J < 0 || a.I >= len(input) || a.J >= len(input[0]) {
+	if a.I < 0 || a.J < 0 || a.I >= len(input) || a.J >= len(input[0]) {
 		return false
 	}
 	return true
@@ -255,13 +255,13 @@ func GenericInInput[T Lenable](a Coord, input []T) bool {
 
 func (a Coord) GetKnightMoves() []Coord {
 	return []Coord{
-		a.Add(NewCoord(1,2)),
-		a.Add(NewCoord(1,-2)),
-		a.Add(NewCoord(-1,2)),
-		a.Add(NewCoord(-1,-2)),
-		a.Add(NewCoord(2,1)),
-		a.Add(NewCoord(2,-1)),
-		a.Add(NewCoord(-2,1)),
-		a.Add(NewCoord(-2,-1)),
+		a.Add(NewCoord(1, 2)),
+		a.Add(NewCoord(1, -2)),
+		a.Add(NewCoord(-1, 2)),
+		a.Add(NewCoord(-1, -2)),
+		a.Add(NewCoord(2, 1)),
+		a.Add(NewCoord(2, -1)),
+		a.Add(NewCoord(-2, 1)),
+		a.Add(NewCoord(-2, -1)),
 	}
 }
