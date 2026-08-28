@@ -2,6 +2,7 @@ package ints
 
 import (
 	"math"
+	"regexp"
 	"strconv"
 )
 
@@ -19,6 +20,12 @@ func FromString(str string) int {
 		panic(err)
 	}
 	return val
+}
+
+var nonNumericRegex = regexp.MustCompile(`[^0-9]+`)
+
+func FromStringIgnoreText(str string) int {
+	return FromString(nonNumericRegex.ReplaceAllString(str, ""))
 }
 
 func Abs(i int) int {
