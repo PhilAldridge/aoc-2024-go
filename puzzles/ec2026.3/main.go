@@ -57,20 +57,7 @@ func getVotes(line string) int {
 	isoStr := split[0][4:]
 	scoreStr := split[1]
 
-	iso := ints.FromStringSlice(strings.Split(isoStr, ""))
-
-	isoMultipliers := make([]int, len(scoreStr))
-
-	isoIndex := len(iso) - 1
-
-	for i := range isoMultipliers {
-		isoMultipliers[len(isoMultipliers)-1-i] = ints.Pow(iso[isoIndex], i)
-
-		isoIndex--
-		if isoIndex < 0 {
-			isoIndex += len(iso)
-		}
-	}
+	isoMultipliers := getIsoMultipliers(isoStr, len(scoreStr))
 
 	return countVote(isoMultipliers, scoreStr)
 }
@@ -80,38 +67,16 @@ func getVotesWithSmallestCheck(line string) int {
 	isoStr := split[0][5:]
 	scoreStr := split[1]
 
-	iso := ints.FromStringSlice(strings.Split(isoStr, ""))
-	score := ints.FromStringSlice(strings.Split(scoreStr, ""))
-
-	isoMultipliers := make([]int, len(scoreStr))
-	isoIndex := len(iso) - 1
-
-	for i := range isoMultipliers {
-		isoMultipliers[len(isoMultipliers)-1-i] = ints.Pow(iso[isoIndex], i)
-
-		isoIndex--
-		if isoIndex < 0 {
-			isoIndex += len(iso)
-		}
-	}
+	isoMultipliers := getIsoMultipliers(isoStr, len(scoreStr))
 
 	votes := countVote(isoMultipliers, scoreStr)
 
-	lowerBound := votes
-	for i := score[0] - 1; i >= 0; i-- {
-		trial := fmt.Sprintf("%d%s", i, strings.Repeat("9", len(scoreStr)-1))
-		trialVal := ints.FromString(trial)
-		if trialVal < votes {
-			break
-		}
+	lowerBound, upperBound:= calculateBounds(scoreStr, isoMultipliers, votes)
 
-		if countVote(isoMultipliers, trial) <= votes {
-			lowerBound = trialVal
-		}
-	}
+	for i := lowerBound; i < upperBound; i+=10 {
+		res:= countVote(isoMultipliers, strconv.Itoa(i))
 
-	for i := lowerBound; i < ints.FromString(scoreStr); i++ {
-		if votes == countVote(isoMultipliers, strconv.Itoa(i)) {
+		if res > votes-10 && res<=votes {
 			return 0
 		}
 	}
@@ -129,4 +94,43 @@ func countVote(isoMultipliers []int, scoreStr string) int {
 	}
 
 	return total
+}
+
+func getIsoMultipliers(isoStr string, scoreLen int) []int {
+	iso := ints.FromStringSlice(strings.Split(isoStr, ""))
+
+	isoMultipliers := make([]int, scoreLen)
+	isoIndex := len(iso) - 1
+
+	for i := range isoMultipliers {
+		isoMultipliers[len(isoMultipliers)-1-i] = ints.Pow(iso[isoIndex], i)
+
+		isoIndex--
+		if isoIndex < 0 {
+			isoIndex += len(iso)
+		}
+	}
+
+	return isoMultipliers
+}
+
+func calculateBounds(scoreStr string, isoMultipliers []int, votes int) (int,int) {
+	lowerBound := votes
+	for i := ints.FromString(scoreStr[0:1]) - 1; i >= 0; i-- {
+		trial := fmt.Sprintf("%d%s", i, strings.Repeat("9", len(scoreStr)-1))
+		trialVal := ints.FromString(trial)
+		if trialVal < votes {
+			break
+		}
+
+		if countVote(isoMultipliers, trial) <= votes {
+			lowerBound = trialVal
+		}
+	}
+
+	lowerBound -= lowerBound%10
+	upperBound := ints.FromString(scoreStr)
+	upperBound -= upperBound%10
+
+	return lowerBound, upperBound
 }
