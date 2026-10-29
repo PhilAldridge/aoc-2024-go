@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -60,9 +59,20 @@ func getVotes(line string) int {
 
 	iso := ints.FromStringSlice(strings.Split(isoStr, ""))
 
-	slices.Reverse(iso)
+	isoMultipliers := make([]int, len(scoreStr))
 
-	return countVote(iso, scoreStr)
+	isoIndex := len(iso) - 1
+
+	for i := range isoMultipliers {
+		isoMultipliers[len(isoMultipliers)-1-i] = ints.Pow(iso[isoIndex], i)
+
+		isoIndex--
+		if isoIndex < 0 {
+			isoIndex += len(iso)
+		}
+	}
+
+	return countVote(isoMultipliers, scoreStr)
 }
 
 func getVotesWithSmallestCheck(line string) int {
@@ -71,26 +81,37 @@ func getVotesWithSmallestCheck(line string) int {
 	scoreStr := split[1]
 
 	iso := ints.FromStringSlice(strings.Split(isoStr, ""))
+	score := ints.FromStringSlice(strings.Split(scoreStr, ""))
 
-	slices.Reverse(iso)
+	isoMultipliers := make([]int, len(scoreStr))
+	isoIndex := len(iso) - 1
 
-	votes := countVote(iso, scoreStr)
+	for i := range isoMultipliers {
+		isoMultipliers[len(isoMultipliers)-1-i] = ints.Pow(iso[isoIndex], i)
+
+		isoIndex--
+		if isoIndex < 0 {
+			isoIndex += len(iso)
+		}
+	}
+
+	votes := countVote(isoMultipliers, scoreStr)
 
 	lowerBound := votes
-	for i := ints.FromString(scoreStr[0:1]) - 1; i >= 0; i-- {
+	for i := score[0] - 1; i >= 0; i-- {
 		trial := fmt.Sprintf("%d%s", i, strings.Repeat("9", len(scoreStr)-1))
 		trialVal := ints.FromString(trial)
 		if trialVal < votes {
 			break
 		}
 
-		if countVote(iso, trial) <= votes {
+		if countVote(isoMultipliers, trial) <= votes {
 			lowerBound = trialVal
 		}
 	}
 
 	for i := lowerBound; i < ints.FromString(scoreStr); i++ {
-		if votes == countVote(iso, strconv.Itoa(i)) {
+		if votes == countVote(isoMultipliers, strconv.Itoa(i)) {
 			return 0
 		}
 	}
@@ -98,14 +119,13 @@ func getVotesWithSmallestCheck(line string) int {
 	return votes
 }
 
-func countVote(iso []int, scoreStr string) int {
+func countVote(isoMultipliers []int, scoreStr string) int {
 	score := ints.FromStringSlice(strings.Split(scoreStr, ""))
-	slices.Reverse(score)
 
 	total := 0
 
-	for i, scoreDigit := range score {
-		total += scoreDigit * ints.Pow(iso[i%len(iso)], i)
+	for i := range score {
+		total += score[len(score)-1-i] * isoMultipliers[len(isoMultipliers)-1-i]
 	}
 
 	return total
