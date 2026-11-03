@@ -73,7 +73,7 @@ func part3(name string) int {
 	return total
 }
 
-// parseMapping maps an item to a slice of its direct ingredients
+// parseMapping maps an item to a slice of its direct ingredients - used in part 1
 func parseMapping(name string) map[string][]string {
 	out := make(map[string][]string)
 
@@ -85,7 +85,7 @@ func parseMapping(name string) map[string][]string {
 	return out
 }
 
-// reverseMapping maps each ingredient to all the items that directly use it
+// reverseMapping maps each ingredient to all the items that directly use it - used in parts 2 and 3
 func reverseMapping(name string) map[string][]string {
 	out := make(map[string][]string)
 
@@ -106,10 +106,15 @@ func reverseMapping(name string) map[string][]string {
 // collectIngredientsRecursion recursively searches the mapping, to find all unique nodes that can be reached by going forward through the graph, starting at item
 func collectIngredientsRecursion(item string, mapping map[string][]string, out map[string]bool) {
 	for _, ingredient := range mapping[item] {
+		// skip if ingredient already added - avoids infinite recursion
 		if out[ingredient] {
 			continue
 		}
+
+		// add ingredient
 		out[ingredient] = true
+
+		// add ingredients used to make ingredient
 		collectIngredientsRecursion(ingredient, mapping, out)
 	}
 }
