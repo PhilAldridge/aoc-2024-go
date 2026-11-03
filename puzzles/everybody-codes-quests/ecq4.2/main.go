@@ -83,7 +83,7 @@ func part3(name string) int {
 
 		for beetle := range visited {
 			for _, beacon := range beacons {
-				current:= coords.NewCoord(
+				current := coords.NewCoord(
 					(beetle.I+beacon.I)/2,
 					(beetle.J+beacon.J)/2,
 				)

@@ -27,20 +27,20 @@ func main() {
 
 func part1(name string) int {
 	in := parseInput(name)
-	total:= 0
-	squares:= findSquares(in)
+	total := 0
+	squares := findSquares(in)
 
 	for _, square := range squares {
-		hRepeat := in.width / (len(in.vOffset)*2)
-		if in.width % (len(in.vOffset)*2) > square.I {
+		hRepeat := in.width / (len(in.vOffset) * 2)
+		if in.width%(len(in.vOffset)*2) > square.I {
 			hRepeat++
 		}
-		vRepeat := in.height / (len(in.hOffset)*2)
-		if in.height % (len(in.hOffset)*2) > square.J {
+		vRepeat := in.height / (len(in.hOffset) * 2)
+		if in.height%(len(in.hOffset)*2) > square.J {
 			vRepeat++
 		}
 
-		total += hRepeat*vRepeat
+		total += hRepeat * vRepeat
 	}
 
 	return total
@@ -53,19 +53,19 @@ func part2(name string) int {
 	squares := findSquares(in)
 
 	for _, square := range squares {
-		hRepeat := in.width / (len(in.vOffset)*2)
-		if in.width % (len(in.vOffset)*2) > square.I {
+		hRepeat := in.width / (len(in.vOffset) * 2)
+		if in.width%(len(in.vOffset)*2) > square.I {
 			hRepeat++
 		}
-		vRepeat := in.height / (len(in.hOffset)*2)
-		if in.height % (len(in.hOffset)*2) > square.J {
+		vRepeat := in.height / (len(in.hOffset) * 2)
+		if in.height%(len(in.hOffset)*2) > square.J {
 			vRepeat++
 		}
 
 		counts[colouredGrid[coords.NewCoord(
 			square.I%(len(in.vOffset)*2),
-			square.J%(len(in.hOffset)*2),			
-		)]] += hRepeat*vRepeat
+			square.J%(len(in.hOffset)*2),
+		)]] += hRepeat * vRepeat
 	}
 
 	return ints.Max([]int{counts[false], counts[true]})
@@ -120,7 +120,7 @@ func findSquares(in inputType) []coords.Coord {
 	var potentialSquares, squares []coords.Coord
 
 	// Find potential squares by hOffset (where there is a stitch along top and bottom of square)
-	for i := range len(in.hOffset)*2 {
+	for i := range len(in.hOffset) * 2 {
 		hOffset := in.hOffset[i%len(in.hOffset)]
 
 		if in.hOffset[(i+1)%len(in.hOffset)] != hOffset {
@@ -141,7 +141,7 @@ func findSquares(in inputType) []coords.Coord {
 	}
 
 	// Find potential squares by vOffset (where there is a stitch along left and right of square)
-	for i := range len(in.vOffset)*2 {
+	for i := range len(in.vOffset) * 2 {
 		vOffset := in.vOffset[i%len(in.vOffset)]
 
 		if in.vOffset[(i+1)%len(in.vOffset)] != vOffset {
@@ -179,8 +179,8 @@ func colourGrid(in inputType) map[coords.Coord]bool {
 	current := false
 	out := make(map[coords.Coord]bool)
 
-	for i := range len(in.vOffset)*2 {
-		for j := range len(in.hOffset)*2 {
+	for i := range len(in.vOffset) * 2 {
+		for j := range len(in.hOffset) * 2 {
 			if in.hOffset[j%len(in.hOffset)] == (i%2 == 1) {
 				current = !current
 			}

@@ -94,7 +94,7 @@ func part3(name string) int {
 
 			new := current - val
 
-			if new<=0 || slices.Contains(visited, new) || crossesLoop(new, current, visited) {
+			if new <= 0 || slices.Contains(visited, new) || crossesLoop(new, current, visited) {
 				// try forward
 				new = current + val
 
@@ -114,23 +114,23 @@ func part3(name string) int {
 			// add backward move
 			visited = append(visited, new)
 		}
-		
+
 		total += visited[len(visited)-1]
 
 		// For displaying in Desmos
-		if i == len(lines) -1 {
-		// 	for j:=0; j< len(visited) - 1; j++ {
-		// 		centre:= float32(visited[j] + visited[j+1])/2.0
+		if i == len(lines)-1 {
+			// 	for j:=0; j< len(visited) - 1; j++ {
+			// 		centre:= float32(visited[j] + visited[j+1])/2.0
 
-		// 		r:= float32(visited[j]) - centre
+			// 		r:= float32(visited[j]) - centre
 
-		// 		constraint:= ` \left\{ y > 0 \right\}`
-		// 		if j%2 ==0 {
-		// 			constraint = ` \left\{ y < 0 \right\}`
-		// 		}
+			// 		constraint:= ` \left\{ y > 0 \right\}`
+			// 		if j%2 ==0 {
+			// 			constraint = ` \left\{ y < 0 \right\}`
+			// 		}
 
-		// 		fmt.Printf("(x-%f)^2+y^2=%f%s\n", centre, r*r, constraint)
-		// 	}
+			// 		fmt.Printf("(x-%f)^2+y^2=%f%s\n", centre, r*r, constraint)
+			// 	}
 		}
 	}
 
@@ -149,8 +149,8 @@ func crossesLoop(a, b int, visited []int) bool {
 	}
 
 	for startAt < len(visited)-1 {
-		loopStart:= visited[startAt]
-		loopEnd:= visited[startAt + 1]
+		loopStart := visited[startAt]
+		loopEnd := visited[startAt+1]
 
 		if loopStart > loopEnd {
 			loopStart, loopEnd = loopEnd, loopStart
@@ -164,7 +164,7 @@ func crossesLoop(a, b int, visited []int) bool {
 			return true
 		}
 
-		startAt +=2
+		startAt += 2
 	}
 
 	return false
@@ -180,8 +180,8 @@ func insideLoopMax(a int, visited []int) int {
 	}
 
 	for startAt < len(visited)-1 {
-		loopStart:= visited[startAt]
-		loopEnd:= visited[startAt+1]
+		loopStart := visited[startAt]
+		loopEnd := visited[startAt+1]
 
 		if loopStart > loopEnd {
 			loopStart, loopEnd = loopEnd, loopStart
@@ -191,7 +191,7 @@ func insideLoopMax(a int, visited []int) int {
 			max = loopEnd - 1
 		}
 
-		startAt +=2
+		startAt += 2
 	}
 
 	return max

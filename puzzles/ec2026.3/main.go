@@ -71,12 +71,12 @@ func getVotesWithSmallestCheck(line string) int {
 
 	votes := countVote(isoMultipliers, scoreStr)
 
-	lowerBound, upperBound:= calculateBounds(scoreStr, isoMultipliers, votes)
+	lowerBound, upperBound := calculateBounds(scoreStr, isoMultipliers, votes)
 
-	for i := lowerBound; i < upperBound; i+=10 {
-		res:= countVote(isoMultipliers, strconv.Itoa(i))
+	for i := lowerBound; i < upperBound; i += 10 {
+		res := countVote(isoMultipliers, strconv.Itoa(i))
 
-		if res > votes-10 && res<=votes {
+		if res > votes-10 && res <= votes {
 			return 0
 		}
 	}
@@ -114,7 +114,7 @@ func getIsoMultipliers(isoStr string, scoreLen int) []int {
 	return isoMultipliers
 }
 
-func calculateBounds(scoreStr string, isoMultipliers []int, votes int) (int,int) {
+func calculateBounds(scoreStr string, isoMultipliers []int, votes int) (int, int) {
 	lowerBound := votes
 	for i := ints.FromString(scoreStr[0:1]) - 1; i >= 0; i-- {
 		trial := fmt.Sprintf("%d%s", i, strings.Repeat("9", len(scoreStr)-1))
@@ -128,9 +128,9 @@ func calculateBounds(scoreStr string, isoMultipliers []int, votes int) (int,int)
 		}
 	}
 
-	lowerBound -= lowerBound%10
+	lowerBound -= lowerBound % 10
 	upperBound := ints.FromString(scoreStr)
-	upperBound -= upperBound%10
+	upperBound -= upperBound % 10
 
 	return lowerBound, upperBound
 }

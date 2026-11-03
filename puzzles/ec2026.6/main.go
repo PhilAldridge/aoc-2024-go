@@ -24,88 +24,76 @@ func main() {
 }
 
 func part1(name string) int {
-	mapping:= parseMapping(name)
+	mapping := parseMapping(name)
 
-	ingredientsUsed:= make(map[string]bool)
-
-	collectIngredients("NULL", mapping, ingredientsUsed)
-
-	delete(ingredientsUsed, "NULL")
+	ingredientsUsed := collectIngredients("NULL", mapping)
 
 	return len(ingredientsUsed)
 }
 
 func part2(name string) int {
-	mapping:= reverseMapping(name)
+	mapping := reverseMapping(name)
 
-	itemsUsingNull:= make(map[string]bool)
-
-	collectIngredients("NULL", mapping, itemsUsingNull)
-
-	delete(itemsUsingNull, "NULL")
+	itemsUsingNull := collectIngredients("NULL", mapping)
 
 	return len(itemsUsingNull)
 }
 
 func part3(name string) int {
-	mapping:= reverseMapping(name)
+	mapping := reverseMapping(name)
 
-	itemsUsingNullV1:= make(map[string]bool)
+	itemsUsingNullV1 := collectIngredients("NULLv1", mapping)
 
-	collectIngredients("NULLv1", mapping, itemsUsingNullV1)
+	itemsUsingNullV2 := collectIngredients("NULLv2", mapping)
 
-	itemsUsingNullV2:= make(map[string]bool)
+	itemsUsingNullV3 := collectIngredients("NULLv3", mapping)
 
-	collectIngredients("NULLv2", mapping, itemsUsingNullV2)
+	counter := make(map[string]int)
 
-	itemsUsingNullV3:= make(map[string]bool)
-
-	collectIngredients("NULLv2", mapping, itemsUsingNullV3)
-
-	counter:= make(map[string]int)
-
-	for item:= range itemsUsingNullV1 {
+	for item := range itemsUsingNullV1 {
 		counter[item]++
 	}
 
-	for item:= range itemsUsingNullV2 {
+	for item := range itemsUsingNullV2 {
 		counter[item]++
 	}
 
-	for item:= range itemsUsingNullV3 {
+	for item := range itemsUsingNullV3 {
 		counter[item]++
 	}
 
-	total:= 0
+	total := 0
 
-	for _, count:= range counter {
-		if count >1 {
-			total ++
+	for _, count := range counter {
+		if count > 1 {
+			total++
 		}
 	}
 
 	return total
 }
 
+// parseMapping maps an item to a slice of its direct ingredients
 func parseMapping(name string) map[string][]string {
-	out:= make(map[string][]string)
+	out := make(map[string][]string)
 
-	for _, line:= range files.ReadLines(name) {
-		split:= strings.Split(line, ":")
-		out[split[0]] = strings.Split(split[1],",")
+	for _, line := range files.ReadLines(name) {
+		split := strings.Split(line, ":")
+		out[split[0]] = strings.Split(split[1], ",")
 	}
-	
+
 	return out
 }
 
+// reverseMapping maps each ingredient to all the items that directly use it
 func reverseMapping(name string) map[string][]string {
-	out:= make(map[string][]string)
+	out := make(map[string][]string)
 
-	for _, line:= range files.ReadLines(name) {
-		split:= strings.Split(line, ":")
+	for _, line := range files.ReadLines(name) {
+		split := strings.Split(line, ":")
 
 		for _, item := range strings.Split(split[1], ",") {
-			current:= out[item]
+			current := out[item]
 			if !slices.Contains(current, split[0]) {
 				out[item] = append(out[item], split[0])
 			}
@@ -115,10 +103,25 @@ func reverseMapping(name string) map[string][]string {
 	return out
 }
 
-func collectIngredients(item string, mapping map[string][]string, out map[string]bool) {
-	for _, ingredient:= range mapping[item] {
-		if out[ingredient] { continue}
+// collectIngredientsRecursion recursively searches the mapping, to find all unique nodes that can be reached by going forward through the graph, starting at item
+func collectIngredientsRecursion(item string, mapping map[string][]string, out map[string]bool) {
+	for _, ingredient := range mapping[item] {
+		if out[ingredient] {
+			continue
+		}
 		out[ingredient] = true
-		collectIngredients(ingredient, mapping, out)
+		collectIngredientsRecursion(ingredient, mapping, out)
 	}
+}
+
+func collectIngredients(item string, mapping map[string][]string) map[string]bool {
+	ingredientsUsed := make(map[string]bool)
+
+	// populate ingredientsUsed
+	collectIngredientsRecursion(item, mapping, ingredientsUsed)
+
+	// Remove the initial node, as it is not an ingredient used to make itself
+	delete(ingredientsUsed, item)
+
+	return ingredientsUsed
 }

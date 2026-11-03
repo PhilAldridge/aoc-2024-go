@@ -24,15 +24,15 @@ func main() {
 }
 
 func part1(name string) int {
-	cones:= ints.FromStringSlice(strings.Split(files.Read(name),","))
-	n:=1
-	nSquared:=n*n
+	cones := ints.FromStringSlice(strings.Split(files.Read(name), ","))
+	n := 1
+	nSquared := n * n
 	total := 0
 
-	for _, cone:= range cones {
+	for _, cone := range cones {
 		for cone > nSquared {
 			n++
-			nSquared = n*n
+			nSquared = n * n
 		}
 
 		total += nSquared - cone
@@ -42,13 +42,13 @@ func part1(name string) int {
 }
 
 func part2(name string) int {
-	cones:= ints.FromStringSlice(strings.Split(files.Read(name),","))
-	n:=8
+	cones := ints.FromStringSlice(strings.Split(files.Read(name), ","))
+	n := 8
 	total := 0
 
-	for _, cone:= range cones {
+	for _, cone := range cones {
 		for cone > n {
-			n+=4
+			n += 4
 		}
 
 		total += n - cone
@@ -58,15 +58,15 @@ func part2(name string) int {
 }
 
 func part3(name string) int {
-	cones:= ints.FromStringSlice(strings.Split(files.Read(name),","))
-	n:=3
-	nSquared:=n*n-1
+	cones := ints.FromStringSlice(strings.Split(files.Read(name), ","))
+	n := 3
+	nSquared := n*n - 1
 	total := 0
 
-	for _, cone:= range cones {
+	for _, cone := range cones {
 		for cone > nSquared {
-			n+=2
-			nSquared = n*n-1
+			n += 2
+			nSquared = n*n - 1
 		}
 
 		total += nSquared - cone

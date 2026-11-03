@@ -72,20 +72,20 @@ func part3(name string) int {
 		results = append(results, result)
 	}
 
-	resultsMap:= mapResults(results)
+	resultsMap := mapResults(results)
 
-	scores:= make(map[int]int)
+	scores := make(map[int]int)
 
-	for k,v:= range resultsMap {
-		slices.SortFunc(v, func(a,b idTime) int {
+	for k, v := range resultsMap {
+		slices.SortFunc(v, func(a, b idTime) int {
 			return a.time - b.time
 		})
 
-		currentTime:=0
-		maxScore := 50*k.part
-		lastIndex:=0
+		currentTime := 0
+		maxScore := 50 * k.part
+		lastIndex := 0
 
-		for i, idRes:= range v {
+		for i, idRes := range v {
 			if currentTime != idRes.time {
 				lastIndex = i
 				currentTime = idRes.time
@@ -104,12 +104,12 @@ func part3(name string) int {
 		finalScores = append(finalScores, v)
 	}
 
-	slices.SortFunc(finalScores, func(a,b int) int { return b-a})
+	slices.SortFunc(finalScores, func(a, b int) int { return b - a })
 
 	total := 0
 
-	lastIndex:=0
-	currentScore:=0
+	lastIndex := 0
+	currentScore := 0
 	for i, score := range finalScores {
 		if score != currentScore {
 			currentScore = score

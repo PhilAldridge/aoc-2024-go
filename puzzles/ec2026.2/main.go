@@ -25,11 +25,11 @@ func main() {
 }
 
 func part1(name string) int {
-	lines:= files.ReadLines(name)
+	lines := files.ReadLines(name)
 
 	total := 0
 
-	for _, line:= range lines {
+	for _, line := range lines {
 		total += parseAndSort(line)
 	}
 
@@ -45,22 +45,22 @@ func part3(name string) int {
 }
 
 func parseAndSort(line string) int {
-	comparisons:= strings.Split(line, " ")
-	out:= []byte{'1','2','3','4','5'}
-	
-	swaps:= true
+	comparisons := strings.Split(line, " ")
+	out := []byte{'1', '2', '3', '4', '5'}
+
+	swaps := true
 
 	for swaps {
 		swaps = false
 
-		for _, comparison:= range comparisons {
-			aIndex:= slices.Index(out, comparison[0])
+		for _, comparison := range comparisons {
+			aIndex := slices.Index(out, comparison[0])
 			if aIndex == -1 {
 				aIndex = len(out)
 				out = append(out, comparison[0])
 			}
 
-			bIndex:= slices.Index(out, comparison[2])
+			bIndex := slices.Index(out, comparison[2])
 			if bIndex == -1 {
 				bIndex = len(out)
 				out = append(out, comparison[2])

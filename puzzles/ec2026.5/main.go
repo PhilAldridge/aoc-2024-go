@@ -141,9 +141,9 @@ func getTrees(grid [][]rune) [][]rune {
 				continue
 			}
 
-			if stampSuccess(i,j, grid) {
-				changed = append(changed, coords.NewCoord(i,j))
-				grid[i][j]= '@'
+			if stampSuccess(i, j, grid) {
+				changed = append(changed, coords.NewCoord(i, j))
+				grid[i][j] = '@'
 			}
 		}
 	}
@@ -158,7 +158,7 @@ func getTrees(grid [][]rune) [][]rune {
 				}
 
 				count := 0
-				sandy:= false
+				sandy := false
 
 				for _, adj2 := range adj.GetAdjacentIncludingDiagonals() {
 					if coords.GenericInInput(adj2, grid) {
@@ -167,7 +167,7 @@ func getTrees(grid [][]rune) [][]rune {
 							break
 						}
 
-						if  grid[adj2.I][adj2.J] == '@' {
+						if grid[adj2.I][adj2.J] == '@' {
 							count++
 						}
 					}
@@ -179,7 +179,7 @@ func getTrees(grid [][]rune) [][]rune {
 			}
 		}
 
-		for _, coord:= range nextChanged {
+		for _, coord := range nextChanged {
 			grid[coord.I][coord.J] = '@'
 		}
 
