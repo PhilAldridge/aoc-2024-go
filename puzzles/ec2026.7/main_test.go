@@ -30,7 +30,7 @@ func TestPart3(t *testing.T) {
 
 	t.Run("Part 3", func(t *testing.T) {
 		expected := 187
-		actual := part3("test-input3.txt")
+		actual := part3("test-input3.txt", 100)
 		assert.Equal(t, expected, actual)
 	})
 

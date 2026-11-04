@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"maps"
+	"math"
 	"strings"
 	"time"
 
@@ -15,7 +17,7 @@ func main() {
 	split := time.Now()
 	fmt.Println("Part 2 answer: ", part2("input2.txt"))
 	split2 := time.Now()
-	fmt.Println("Part 3 answer: ", part3("input3.txt"))
+	fmt.Println("Part 3 answer: ", part3("input3.txt", 1000000))
 
 	fmt.Println()
 	fmt.Println("Part 1: ", split.Sub(start))
@@ -24,27 +26,24 @@ func main() {
 }
 
 func part1(name string) int {
-	return solve(name, 5)
+	return solve1and2(name, 5)
 }
 
 func part2(name string) int {
-	return solve(name, 10)
+	return solve1and2(name, 10)
 }
 
-func part3(name string) int {
+func part3(name string, energyLimit int) int {
 	clouds, _ := parseInput(name)
 
 	max := 0
 	for id := range clouds {
-		cloudsClone := cloneClouds(clouds)
+		cloudsClone := maps.Clone(clouds)
 
-		impulseMap := map[int]int{id: 1}
-		for len(impulseMap) > 0 {
-			sendImpulse(impulseMap, 10, cloudsClone)
-			impulseMap = explodeClouds(cloudsClone)
-		}
+		impulseMap := map[int]map[int]int{id: map[int]int{10: 1}}
+		sendImpulse(impulseMap, cloudsClone, energyLimit)
 
-		total:= sumEnergy(cloudsClone)
+		total := sumEnergy(cloudsClone)
 		if total > max {
 			max = total
 		}
@@ -58,12 +57,17 @@ type cloud struct {
 	connections []int
 }
 
-func solve(name string, impulse int) int {
+// parts 1 and 2 have the same logic, with a different initial impulse
+// both send that impulse to the cloud with the most connections
+// there are no explosions, so energyLimit is set to a number that will not be reached
+func solve1and2(name string, impulse int) int {
 	clouds, maxID := parseInput(name)
-	sendImpulse(map[int]int{maxID: 1}, impulse, clouds)
+	sendImpulse(map[int]map[int]int{maxID: map[int]int{impulse: 1}}, clouds, math.MaxInt)
 	return sumEnergy(clouds)
 }
 
+// parseInput makes a map of each cloud's energy and connections against their id
+// it also returns the id of the cloud with the most connections
 func parseInput(name string) (map[int]cloud, int) {
 	out := make(map[int]cloud)
 	max := 0
@@ -90,57 +94,54 @@ func parseInput(name string) (map[int]cloud, int) {
 	return out, maxID
 }
 
-func sendImpulse(impulseMap map[int]int, power int, clouds map[int]cloud) {
-	for power > 0 {
-		nextMap := make(map[int]int)
+// impulse goes id, power, times
+func sendImpulse(impulseMap map[int]map[int]int, clouds map[int]cloud, energyLimit int) {
+	// loop until all energy has been dissipated
+	for len(impulseMap) > 0 {
+		nextImpulseMap := make(map[int]map[int]int)
+		toExplode := []int{}
+
 		for id, val := range impulseMap {
 			cloud, ok := clouds[id]
 			if !ok {
 				continue
 			}
 
-			cloud.energy += power * val
+			// send impulse to connected clouds, lowering power by 1
+			for power, amount := range val {
+				cloud.energy += power * amount
+				if power > 1 {
+					for _, connection := range cloud.connections {
+						if _, ok := nextImpulseMap[connection]; !ok {
+							nextImpulseMap[connection] = make(map[int]int)
+						}
+						nextImpulseMap[connection][power-1] += amount
+					}
+				}
+
+			}
+
+			// add impulses from cloud if it will explode this round
+			if cloud.energy >= energyLimit {
+				toExplode = append(toExplode, id)
+				for _, connection := range cloud.connections {
+					if _, ok := nextImpulseMap[connection]; !ok {
+						nextImpulseMap[connection] = make(map[int]int)
+					}
+					nextImpulseMap[connection][10] += 1
+				}
+			}
 			clouds[id] = cloud
 
-			for _, connection := range cloud.connections {
-				nextMap[connection] += val
-			}
 		}
 
-		power--
-		impulseMap = nextMap
-	}
-}
-
-func explodeClouds(clouds map[int]cloud) map[int]int {
-	impulseMap := make(map[int]int)
-
-	toDelete := []int{}
-
-	for id, cloud := range clouds {
-		if cloud.energy >= 100 {
-			for _, con := range cloud.connections {
-				impulseMap[con]++
-			}
-			toDelete = append(toDelete, id)
+		// explode clouds - doing this at the end to avoid issues deleting from map whilst looping through it
+		for _, id := range toExplode {
+			delete(clouds, id)
 		}
+
+		impulseMap = nextImpulseMap
 	}
-
-	for _, id := range toDelete {
-		delete(clouds, id)
-	}
-
-	return impulseMap
-}
-
-func cloneClouds(clouds map[int]cloud) map[int]cloud {
-	out := make(map[int]cloud)
-
-	for k, v := range clouds {
-		out[k] = v
-	}
-
-	return out
 }
 
 func sumEnergy(clouds map[int]cloud) int {
