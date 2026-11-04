@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Graph</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f7f9fb; --fg: #24303b; --muted: #6b7885; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #161b21; --fg: #dbe3ea; --muted: #8b98a5; } }
+  html, body { height: 100%; margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, sans-serif; }
+  #graph { position: fixed; inset: 0; }
+  #graph svg { width: 100%; height: 100%; }
+  #status { position: fixed; left: 12px; bottom: 10px; color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<div id="graph"></div>
+<div id="status">Connecting…</div>
+
+<script>
+  // Show problems on the page instead of failing silently.
+  const statusEl = document.getElementById('status');
+  function fail(msg) { statusEl.textContent = msg; statusEl.style.color = '#d33'; console.error(msg); }
+  window.addEventListener('error', (e) => {
+    if (e.target && e.target.src) fail('Could not load ' + e.target.src);
+    else fail('Error: ' + e.message);
+  }, true);
+</script>
+<script src="https://unpkg.com/d3@7.8.4/dist/d3.js"></script>
+<script src="https://unpkg.com/@hpcc-js/wasm@2.13.0/dist/graphviz.umd.js"></script>
+<script src="https://unpkg.com/d3-graphviz@5.0.2/build/d3-graphviz.js"></script>
+<script>
+  if (!window.d3 || !d3.select('body').graphviz) {
+    fail('d3 or d3-graphviz did not load (check the Network tab, or an ad/script blocker)');
+    throw new Error('libraries missing');
+  }
+  const DURATION = 600; // ms per transition
+  let busy = false;
+  let pending = null; // only the newest frame is kept while a transition runs
+  let timer = null;
+  let received = 0;
+
+  // Move on to the next frame. Normally called when d3-graphviz reports the
+  // render and transition are done. The fallback timers only exist so a
+  // missed event can't stall the page; they must never fire while a
+  // transition is still running, because starting a new one interrupts it
+  // and leaves deleted nodes stuck on screen.
+  function next() {
+    clearTimeout(timer);
+    busy = false;
+    if (pending !== null) { const dot = pending; pending = null; draw(dot); }
+  }
+
+  const gv = d3.select('#graph')
+    .graphviz()
+    .engine('sfdp')
+    .tweenPaths(false)
+    .onerror((err) => { fail('Graphviz error: ' + err); next(); })
+    .keyMode('id')            // match nodes/edges between frames by their DOT id
+    .fit(true)
+    .growEnteringEdges(true)  // new edges draw in from their source
+    .transition(() => d3.transition('main').ease(d3.easeCubicInOut).duration(DURATION))
+    .on('transitionStart', () => {
+      clearTimeout(timer);
+      timer = setTimeout(next, DURATION + 400); // only after the transition should be over
+    })
+    .on('end', next);
+
+  // Remove any node or edge that isn't in the incoming frame, immediately and
+  // before d3-graphviz starts rendering it. d3-graphviz's own exit animation
+  // can be cut short by the next frame, leaving deleted elements on screen.
+  // Doing this synchronously means the DOM is already clean when d3-graphviz
+  // matches old elements to new ones, so nothing changes under it mid-render.
+  function removeStale(dot) {
+    const keep = new Set();
+    for (const m of dot.matchAll(/\bid="([^"]+)"/g)) keep.add(m[1]);
+    d3.select('#graph').selectAll('g.node, g.edge')
+      .filter(function () { return !keep.has(this.id); })
+      .interrupt('main')
+      .remove();
+  }
+
+  function draw(dot) {
+    busy = true;
+    removeStale(dot);
+    timer = setTimeout(next, 10000); // safety net if layout never finishes
+    gv.renderDot(dot);
+  }
+
+  const es = new EventSource('/events');
+  es.onopen = () => { statusEl.textContent = 'Live'; };
+  es.onerror = () => { statusEl.textContent = 'Disconnected from /events, retrying…'; };
+  es.onmessage = (e) => {
+    received++;
+    statusEl.textContent = 'Live, ' + received + (received === 1 ? ' update' : ' updates') + ' received';
+    const dot = JSON.parse(e.data);
+    if (busy) pending = dot; else draw(dot);
+  };
+</script>
+</body>
+</html>

@@ -1,15 +1,23 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
+	"log"
 	"maps"
 	"math"
+	"net/http"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/PhilAldridge/aoc-2024-go/pkg/files"
+	"github.com/PhilAldridge/aoc-2024-go/pkg/graphs"
 	"github.com/PhilAldridge/aoc-2024-go/pkg/ints"
 )
+
+//go:embed index.html
+var indexHTML []byte
 
 func main() {
 	start := time.Now()
@@ -35,19 +43,29 @@ func part2(name string) int {
 
 func part3(name string, energyLimit int) int {
 	clouds, _ := parseInput(name)
-
+	hub := graphs.NewHub(inputToGraph(clouds))
 	max := 0
-	for id := range clouds {
-		cloudsClone := maps.Clone(clouds)
+	id := 22
+	cloudsClone := maps.Clone(clouds)
+	fmt.Printf("\nStarting impulse at cloud: %d\n", id)
 
-		impulseMap := map[int]map[int]int{id: map[int]int{10: 1}}
-		sendImpulse(impulseMap, cloudsClone, energyLimit)
+	impulseMap := map[int]map[int]int{id: map[int]int{10: 1}}
+	go sendImpulse(impulseMap, cloudsClone, energyLimit, true, hub)
 
-		total := sumEnergy(cloudsClone)
-		if total > max {
-			max = total
-		}
+	total := sumEnergy(cloudsClone)
+	if total > max {
+		max = total
 	}
+
+	fmt.Printf("Final energy: %d\n", total)
+
+	http.Handle("/events", hub)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write(indexHTML)
+	})
+	log.Println("open http://localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 
 	return max
 }
@@ -62,7 +80,7 @@ type cloud struct {
 // there are no explosions, so energyLimit is set to a number that will not be reached
 func solve1and2(name string, impulse int) int {
 	clouds, maxID := parseInput(name)
-	sendImpulse(map[int]map[int]int{maxID: map[int]int{impulse: 1}}, clouds, math.MaxInt)
+	sendImpulse(map[int]map[int]int{maxID: map[int]int{impulse: 1}}, clouds, math.MaxInt, false, &graphs.Hub{})
 	return sumEnergy(clouds)
 }
 
@@ -94,8 +112,34 @@ func parseInput(name string) (map[int]cloud, int) {
 	return out, maxID
 }
 
+func inputToGraph(in map[int]cloud) graphs.Graph {
+	out := make(graphs.Graph)
+
+	for id, cloud := range in {
+		var connections []graphs.Connection
+
+		for _, con := range cloud.connections {
+			connections = append(connections, graphs.Connection{
+				To:     con,
+				Weight: 1,
+			})
+		}
+
+		out[id] = graphs.Node{
+			Size:        cloud.energy,
+			Connections: connections,
+		}
+	}
+
+	return out
+}
+
 // impulse goes id, power, times
-func sendImpulse(impulseMap map[int]map[int]int, clouds map[int]cloud, energyLimit int) {
+func sendImpulse(impulseMap map[int]map[int]int, clouds map[int]cloud, energyLimit int, updateGraph bool, hub *graphs.Hub) {
+	if updateGraph {
+		time.Sleep(time.Second * 3)
+	}
+
 	// loop until all energy has been dissipated
 	for len(impulseMap) > 0 {
 		nextImpulseMap := make(map[int]map[int]int)
@@ -107,9 +151,25 @@ func sendImpulse(impulseMap map[int]map[int]int, clouds map[int]cloud, energyLim
 				continue
 			}
 
+			if updateGraph {
+				time.Sleep(time.Millisecond * 50)
+
+				hub.Update(func(g graphs.Graph) {
+					n := g[id]
+					size:= cloud.energy
+					for power, amount := range val {
+						size += power*amount
+					}
+
+					n.Size = size
+					g[id] = n
+				})
+			}
+
 			// send impulse to connected clouds, lowering power by 1
 			for power, amount := range val {
 				cloud.energy += power * amount
+
 				if power > 1 {
 					for _, connection := range cloud.connections {
 						if _, ok := nextImpulseMap[connection]; !ok {
@@ -133,6 +193,23 @@ func sendImpulse(impulseMap map[int]map[int]int, clouds map[int]cloud, energyLim
 			}
 			clouds[id] = cloud
 
+		}
+
+		if updateGraph && len(toExplode) > 0 {
+			time.Sleep(time.Millisecond * 1000)
+			hub.Update(func(g graphs.Graph) {
+				for _, id := range toExplode {
+					for k, val := range g {
+
+						val.Connections = slices.DeleteFunc(val.Connections, func(c graphs.Connection) bool {
+							return c.To == id
+						})
+						g[k] = val
+					}
+					delete(g, id)
+				}
+			})
+			time.Sleep(time.Second * 2)
 		}
 
 		// explode clouds - doing this at the end to avoid issues deleting from map whilst looping through it
