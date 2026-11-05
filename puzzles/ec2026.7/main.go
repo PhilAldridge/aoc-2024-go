@@ -156,9 +156,9 @@ func sendImpulse(impulseMap map[int]map[int]int, clouds map[int]cloud, energyLim
 
 				hub.Update(func(g graphs.Graph) {
 					n := g[id]
-					size:= cloud.energy
+					size := cloud.energy
 					for power, amount := range val {
-						size += power*amount
+						size += power * amount
 					}
 
 					n.Size = size

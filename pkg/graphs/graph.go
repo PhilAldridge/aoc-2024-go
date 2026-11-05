@@ -13,7 +13,7 @@ import (
 // Node mirrors your struct: Energy drives the node's size, Connections are
 // outgoing (directed) edges to other nodes.
 type Node struct {
-	Size      int
+	Size        int
 	Connections []Connection
 }
 
@@ -32,7 +32,7 @@ const (
 )
 
 func nodeWidth(energy int) float64 {
-	return widthScale*math.Sqrt(float64(max(energy, 0)))/300.0
+	return widthScale * math.Sqrt(float64(max(energy, 0))) / 300.0
 }
 
 // Edge thickness: line width grows linearly with weight.
