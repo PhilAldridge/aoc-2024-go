@@ -165,8 +165,8 @@ func parseInput(name string) []tree {
 	for _, row := range files.ReadLines(name) {
 		split := strings.Split(row, ", ")
 		out = append(out, tree{
-			growth:             ints.FromString(split[1][7:]),
-			limit:              ints.FromString(split[2][6:]),
+			growth:             ints.FromStringIgnoreText(split[1]),
+			limit:              ints.FromStringIgnoreText(split[2]),
 			branchLengthCopies: map[int]int{1: 1},
 		})
 	}

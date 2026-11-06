@@ -4,6 +4,7 @@ import (
 	"math"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 func Sum(numbers []int) int {
@@ -41,6 +42,15 @@ func FromStringSlice(input []string) []int {
 	for _, str := range input {
 		output = append(output, FromString(str))
 	}
+	return output
+}
+
+func FromDelimitedString(input string, separator string) []int {
+	output := []int{}
+	for _, str := range strings.Split(input, separator) {
+		output = append(output, FromStringIgnoreText(str))
+	}
+
 	return output
 }
 
