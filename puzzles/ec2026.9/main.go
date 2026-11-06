@@ -28,7 +28,7 @@ func part1(name string) int {
 
 	trees := parseInput(name)
 	for _, tree := range trees {
-		seconds, _ := tree.growToSizeLimit()
+		seconds := tree.growToSizeLimit()
 		total += seconds
 	}
 
