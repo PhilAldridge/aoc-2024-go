@@ -40,7 +40,7 @@ func part2(name string) int {
 
 	trees := parseInput(name)
 	for _, tree := range trees {
-		seconds, _ := tree.growToLeafLimit()
+		seconds := tree.growToLeafLimit()
 		total += seconds
 	}
 
@@ -52,19 +52,18 @@ func part3(name string) int {
 }
 
 type tree struct {
-	growth, limit int
-	branchMap     map[int]int
+	growth, limit      int
+	branchLengthCopies map[int]int
 }
 
 // return seconds, total elements (including branches)
-func (t tree) growToSizeLimit() (int, int) {
-	seconds := 0
-	size := 0
-	for {
+func (t tree) growToSizeLimit() int {
+	seconds := 1
+	for t.size() < t.limit {
 		seconds++
 
 		nextBranchMap := make(map[int]int)
-		for branchLength, copies := range t.branchMap {
+		for branchLength, copies := range t.branchLengthCopies {
 			// Node
 			if branchLength == -1 {
 				nextBranchMap[branchLength] += copies
@@ -82,34 +81,27 @@ func (t tree) growToSizeLimit() (int, int) {
 			nextBranchMap[branchLength+1] += copies
 		}
 
-		t.branchMap = nextBranchMap
-
-		size = t.size()
-		if size >= t.limit {
-			return seconds, size
-		}
+		t.branchLengthCopies = nextBranchMap
 	}
+
+	return seconds
 }
 
 // return seconds, total leaves
-func (t tree) growToLeafLimit() (int, int) {
-	seconds := 0
-	leaves := 0
-	for {
+func (t tree) growToLeafLimit() int {
+	seconds := 1
+	for t.leaves() < t.limit {
 		seconds += t.grow()
-
-		leaves = t.leaves()
-		if leaves >= t.limit {
-			return seconds, leaves
-		}
 	}
+
+	return seconds
 }
 
 func (t *tree) grow() int {
 	nextBranchMap := make(map[int]int)
 
 	max := 0
-	for branchLength := range t.branchMap {
+	for branchLength := range t.branchLengthCopies {
 		if branchLength > max {
 			max = branchLength
 		}
@@ -117,7 +109,7 @@ func (t *tree) grow() int {
 
 	seconds := t.growth - max
 
-	for branchLength, copies := range t.branchMap {
+	for branchLength, copies := range t.branchLengthCopies {
 		// Node
 		if branchLength == -1 {
 			nextBranchMap[branchLength] += copies
@@ -135,20 +127,20 @@ func (t *tree) grow() int {
 		nextBranchMap[branchLength+seconds] += copies
 	}
 
-	t.branchMap = nextBranchMap
+	t.branchLengthCopies = nextBranchMap
 
 	return seconds
 }
 
 func (t tree) size() int {
 	total := 0
-	for k, v := range t.branchMap {
-		if k == -1 {
-			total += v
+	for branchLength, copies := range t.branchLengthCopies {
+		if branchLength == -1 {
+			total += copies
 			continue
 		}
 
-		total += k * v
+		total += branchLength * copies
 	}
 
 	return total
@@ -156,12 +148,12 @@ func (t tree) size() int {
 
 func (t tree) leaves() int {
 	total := 0
-	for k, v := range t.branchMap {
-		if k == -1 {
-			total -= v
+	for branchLength, copies := range t.branchLengthCopies {
+		if branchLength == -1 {
+			total -= copies
 			continue
 		}
-		total += v
+		total += copies
 	}
 
 	return total
@@ -173,9 +165,9 @@ func parseInput(name string) []tree {
 	for _, row := range files.ReadLines(name) {
 		split := strings.Split(row, ", ")
 		out = append(out, tree{
-			growth:    ints.FromString(split[1][7:]),
-			limit:     ints.FromString(split[2][6:]),
-			branchMap: map[int]int{0: 1},
+			growth:             ints.FromString(split[1][7:]),
+			limit:              ints.FromString(split[2][6:]),
+			branchLengthCopies: map[int]int{1: 1},
 		})
 	}
 
