@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"time"
 
@@ -29,13 +30,13 @@ func part1(name string) int {
 
 	for range 10 {
 		for i := range ghosts {
-			if collision, _ := ghosts[i].Move(walls); collision {
+			if collision := ghosts[i].Move(walls); collision {
 				total++
 			}
 		}
 
 		for i := range ghosts {
-			if collision, _ := ghosts[i].Overlap(ghosts); collision {
+			if collision := ghosts[i].Overlap(ghosts); collision {
 				total++
 			}
 		}
@@ -51,27 +52,68 @@ func part2(name string) int {
 	for len(ghosts) > 0 {
 		rounds++
 		for i := len(ghosts) - 1; i >= 0; i-- {
-			if _, dead := ghosts[i].Move(walls); dead {
-				ghosts = append(ghosts[:i],ghosts[i+1:]... )
-				fmt.Println(rounds)
-			}
+			ghosts[i].Move(walls)
 		}
+		ghosts = ghosts.Kill(10000)
 
 		for i := len(ghosts) - 1; i >= 0; i-- {
-			if _, dead := ghosts[i].Overlap(ghosts); dead {
-				ghosts = append(ghosts[:i],ghosts[i+1:]... )
-				fmt.Println(rounds)
-			}
+			ghosts[i].Overlap(ghosts)
 		}
+		ghosts = ghosts.Kill(10000)
 	}
 
 	return rounds
 }
 
 func part3(name string) int {
-	total := 0
+	walls, ghosts := parseWallsAndGhosts(name)
+	rounds := 0
+	state := state{ghosts.copy()}
 
-	return total
+	for len(ghosts) > 0 {
+		rounds++
+		for i := len(ghosts) - 1; i >= 0; i-- {
+			ghosts[i].Move(walls)
+		}
+
+		for i := len(ghosts) - 1; i >= 0; i-- {
+			ghosts[i].Overlap(ghosts)
+		}
+
+		if roundsInLoop, collisionsInLoop, loopFound := state.checkLoop(ghosts); loopFound {
+			minRepeats := math.MaxInt
+			for i, g := range ghosts {
+				canLoop := (1000000000000 - g.collisions) / collisionsInLoop[i]
+				if canLoop < minRepeats {
+					minRepeats = canLoop
+				}
+			}
+			fmt.Println("loop found", roundsInLoop, rounds, minRepeats)
+			rounds += roundsInLoop * minRepeats
+			for i, g := range ghosts {
+				g.collisions = g.collisions + minRepeats*collisionsInLoop[i]
+			}
+
+			break
+		} else {
+			state = append(state, ghosts.copy())
+		}
+	}
+
+	for len(ghosts) > 0 {
+		rounds++
+		for i := len(ghosts) - 1; i >= 0; i-- {
+			ghosts[i].Move(walls)
+		}
+		ghosts = ghosts.Kill(1000000000000)
+
+		for i := len(ghosts) - 1; i >= 0; i-- {
+			ghosts[i].Overlap(ghosts)
+		}
+		ghosts = ghosts.Kill(1000000000000)
+	}
+
+	return rounds
 }
 
 type ghostType struct {
@@ -80,7 +122,50 @@ type ghostType struct {
 	collisions          int
 }
 
-func parseWallsAndGhosts(name string) (map[coords.Coord]bool, []ghostType) {
+type ghostsType []ghostType
+
+func (gs ghostsType) copy() ghostsType {
+	out := make(ghostsType, len(gs))
+	for i, g := range gs {
+		out[i] = ghostType{
+			id:         g.id,
+			direction:  g.direction,
+			position:   g.position,
+			collisions: g.collisions,
+		}
+	}
+
+	return out
+}
+
+func (gs ghostsType) equal(gs2 ghostsType) bool {
+	for i, g := range gs {
+		g2 := gs[i]
+
+		if !g.position.Equals(g2.position) || !g.direction.Equals(g2.position) {
+			return false
+		}
+	}
+	return true
+}
+
+type state []ghostsType
+
+func (s state) checkLoop(gs ghostsType) (int, []int, bool) {
+	for i, prevState := range s {
+		if prevState.equal(gs) {
+			collisions := []int{}
+			for j, g := range gs {
+				collisions = append(collisions, g.collisions-prevState[j].collisions)
+			}
+			return len(s) - i, collisions, true
+		}
+	}
+
+	return 0, nil, false
+}
+
+func parseWallsAndGhosts(name string) (map[coords.Coord]bool, ghostsType) {
 	walls := make(map[coords.Coord]bool)
 	ghosts := []ghostType{}
 
@@ -120,29 +205,41 @@ func parseWallsAndGhosts(name string) (map[coords.Coord]bool, []ghostType) {
 	return walls, ghosts
 }
 
-func (g *ghostType) Move(walls map[coords.Coord]bool) (bool, bool) {
+func (g *ghostType) Move(walls map[coords.Coord]bool) bool {
 	newPos := g.position.MoveBy(g.direction, 1)
 
 	if walls[newPos] {
 		g.direction = coords.TurnRight(g.direction)
 		g.collisions++
-		return true, g.collisions >= 10000
+		return true
 	}
 
 	g.position = newPos
-	return false, false
+	return false
 }
 
-func (g *ghostType) Overlap(ghosts []ghostType) (bool, bool) {
+func (g *ghostType) Overlap(ghosts []ghostType) bool {
 	for _, ghost := range ghosts {
 		if g.position.Equals(ghost.position) && g.id != ghost.id {
 			g.direction = coords.TurnBack(g.direction)
 			g.collisions++
-			return true, g.collisions >= 10000
+			return true
 		}
 	}
 
-	return false, false
+	return false
+}
+
+func (gs ghostsType) Kill(limit int) ghostsType {
+	out:= ghostsType{}
+
+	for _, g:= range gs {
+		if g.collisions <limit {
+			out = append(out, g)
+		}
+	}
+
+	return out
 }
 
 func print(walls map[coords.Coord]bool, ghosts []ghostType, total int) {
