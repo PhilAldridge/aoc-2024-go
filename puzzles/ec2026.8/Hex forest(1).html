@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hex forest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&display=swap" rel="stylesheet">
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+  --sky-top: #dce8ec;
+  --sky-bottom: #b9ccc4;
+  --panel: rgba(247, 250, 248, 0.86);
+  --border: rgba(31, 52, 40, 0.16);
+  --text: #1c2b22;
+  --muted: #56685d;
+  --moss: #3f6e3d;
+  --sun: #d98a1c;
+  --bark: #6b4a2f;
+  --field: rgba(255, 255, 255, 0.75);
+  --on-moss: #ffffff;
+  --error: #a3341f;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --sky-top: #1b2a2e;
+    --sky-bottom: #0c1214;
+    --panel: rgba(18, 27, 24, 0.84);
+    --border: rgba(214, 232, 220, 0.14);
+    --text: #e4eee7;
+    --muted: #9db0a3;
+    --moss: #7cc27a;
+    --sun: #f2b04a;
+    --bark: #b48a64;
+    --field: rgba(255, 255, 255, 0.06);
+    --on-moss: #0e1a12;
+    --error: #ff8a70;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --sky-top: #1b2a2e;
+  --sky-bottom: #0c1214;
+  --panel: rgba(18, 27, 24, 0.84);
+  --border: rgba(214, 232, 220, 0.14);
+  --text: #e4eee7;
+  --muted: #9db0a3;
+  --moss: #7cc27a;
+  --sun: #f2b04a;
+  --bark: #b48a64;
+  --field: rgba(255, 255, 255, 0.06);
+  --on-moss: #0e1a12;
+  --error: #ff8a70;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: radial-gradient(130% 95% at 50% 0%, var(--sky-top), var(--sky-bottom));
+  color: var(--text);
+  font-family: "Bricolage Grotesque", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+#stage { position: fixed; inset: 0; }
+#stage canvas { display: block; width: 100%; height: 100%; touch-action: none; outline: none; }
+
+.hud-top {
+  position: fixed; top: 0; left: 0; right: 0;
+  padding: calc(env(safe-area-inset-top, 0px) + 14px) 14px 0;
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+  pointer-events: none;
+}
+.panel {
+  pointer-events: auto;
+  background: var(--panel);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: min(292px, calc(100vw - 28px));
+  overflow: hidden;
+}
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 12px 14px 12px 16px;
+}
+.panel-head h1 {
+  margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em;
+  font-variation-settings: "opsz" 48;
+}
+.panel-head .toggle { display: none; }
+.panel-body { padding: 0 16px 16px; display: grid; gap: 14px; }
+.group { display: grid; gap: 8px; }
+.group h2 { margin: 0; font-size: 12px; font-weight: 500; color: var(--muted); }
+.row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+.btn {
+  font: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text); background: var(--field);
+  border: 1px solid var(--border); border-radius: 9px;
+  padding: 6px 11px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { border-color: var(--moss); }
+.btn:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--sun); outline-offset: 2px; }
+.btn.primary { background: var(--moss); color: var(--on-moss); border-color: transparent; min-width: 84px; justify-content: center; }
+.btn.square { width: 34px; justify-content: center; padding: 6px 0; }
+.btn[disabled] { opacity: 0.45; cursor: default; }
+
+.speed { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+input[type="range"] { width: 100%; accent-color: var(--moss); }
+.speed output { font-variant-numeric: tabular-nums; font-weight: 500; min-width: 46px; text-align: right; }
+label.check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+label.check input { accent-color: var(--moss); }
+.source { font-size: 13px; color: var(--muted); }
+.hint { font-size: 12px; color: var(--muted); margin: 0; }
+.simsize { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.simsize input {
+  font: inherit; width: 64px; color: var(--text); background: var(--field);
+  border: 1px solid var(--border); border-radius: 8px; padding: 4px 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stack { display: grid; gap: 8px; justify-items: end; }
+.status {
+  pointer-events: auto;
+  background: var(--panel);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid var(--border); border-radius: 999px;
+  padding: 8px 14px 8px 10px;
+  display: flex; align-items: center; gap: 10px;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.compass { width: 30px; height: 30px; flex: none; }
+.status strong { font-weight: 700; }
+.status span { color: var(--muted); }
+.status.army strong { font-size: 22px; line-height: 1; letter-spacing: -0.02em; }
+.status.army .ent { width: 26px; height: 30px; flex: none; }
+.status.army.bump strong { animation: bump 0.45s ease-out; }
+@keyframes bump { 0% { color: var(--sun); transform: scale(1.25); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .status.army.bump strong { animation: none; } }
+
+dialog {
+  width: min(620px, calc(100vw - 28px));
+  max-height: calc(100vh - 40px);
+  border: 1px solid var(--border); border-radius: 16px;
+  background: var(--panel); color: var(--text);
+  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+  padding: 18px;
+}
+dialog::backdrop { background: rgba(5, 12, 9, 0.35); }
+dialog h2 { margin: 0 0 6px; font-size: 18px; }
+dialog p { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+dialog code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+dialog textarea {
+  width: 100%; height: 240px; resize: vertical;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; line-height: 1.45;
+  color: var(--text); background: var(--field);
+  border: 1px solid var(--border); border-radius: 10px; padding: 10px;
+}
+dialog .err { color: var(--error); font-size: 13px; min-height: 18px; margin: 8px 0 4px; }
+dialog .actions { display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap; }
+dialog .actions .row { gap: 8px; }
+
+@media (max-width: 640px) {
+  .hud-top { flex-direction: column; }
+  .stack { order: -1; justify-items: start; grid-auto-flow: column; }
+  .panel-head .toggle { display: inline-flex; }
+  .panel.collapsed .panel-body { display: none; }
+}
+</style>
+</head>
+<body>
+<div id="stage" aria-label="3D view of the hex forest. Drag to rotate, scroll or pinch to zoom."></div>
+
+<div class="hud-top">
+  <section class="panel" id="panel">
+    <div class="panel-head">
+      <h1>Hex forest</h1>
+      <button class="btn toggle" id="panelToggle" aria-expanded="true">Hide</button>
+    </div>
+    <div class="panel-body">
+      <div class="group">
+        <h2>Animation</h2>
+        <div class="row">
+          <button class="btn primary" id="playBtn">Pause</button>
+          <button class="btn" id="stepBtn" title="Next step (→)">Step</button>
+          <button class="btn" id="restartBtn">Restart</button>
+        </div>
+        <div class="speed">
+          <input type="range" id="speed" min="-3" max="3" step="0.25" value="0" aria-label="Animation speed">
+          <output id="speedVal">1×</output>
+        </div>
+        <label class="check"><input type="checkbox" id="marchToggle" checked> Show Ents marching to the army</label>
+      </div>
+      <div class="group">
+        <h2>View</h2>
+        <div class="row">
+          <button class="btn square" id="zoomOut" aria-label="Zoom out">−</button>
+          <button class="btn square" id="zoomIn" aria-label="Zoom in">+</button>
+          <button class="btn" id="resetView">Reset view</button>
+          <label class="check"><input type="checkbox" id="autoRotate"> Orbit</label>
+        </div>
+        <p class="hint">Drag to rotate, scroll or pinch to zoom, right-drag to pan.</p>
+      </div>
+      <div class="group">
+        <h2>Data</h2>
+        <div class="source" id="sourceLabel">Showing a live simulation</div>
+        <div class="row">
+          <button class="btn" id="dataBtn">Load your data</button>
+          <button class="btn" id="simBtn" hidden>Use simulation</button>
+        </div>
+        <label class="simsize" for="simSide">Simulated board side
+          <input type="number" id="simSide" min="2" max="16" value="12">
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <div class="stack">
+    <div class="status" aria-label="Direction of the sun">
+      <svg class="compass" viewBox="-16 -16 32 32" aria-hidden="true">
+        <polygon id="compassHex" points="" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.5"/>
+        <circle id="compassSun" r="3.6" fill="var(--sun)"/>
+      </svg>
+    </div>
+    <div class="status army" id="armyPill" aria-live="polite">
+      <svg class="ent" viewBox="0 0 26 30" aria-hidden="true">
+        <polygon points="13,1 23,15 3,15" fill="var(--moss)"/>
+        <rect x="10.5" y="13" width="5" height="9" rx="1.5" fill="var(--bark)"/>
+        <path d="M11.5 21 L9 29 M14.5 21 L17 29 M10.5 15 L4 21 M15.5 15 L22 21" stroke="var(--bark)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <strong id="armyCount">0</strong><span id="armyLabel">Ents in the army</span>
+    </div>
+  </div>
+</div>
+
+<dialog id="dataDialog">
+  <h2>Load your data</h2>
+  <p>Paste a JSON array of frames, one per step. Each frame has <code>ents</code> (rows of the ragged hexagon, heights −2 to 9) and <code>sun</code> (corner 0–5). An Ent joins the army whenever its height goes from 9 to a negative value.</p>
+  <textarea id="dataInput" spellcheck="false" placeholder='[
+  {"sun": 0, "ents": [[1, 2, 0], [3, -1, 4, 2], [0, 5, 9, 1, -2], [2, 1, 3, 0], [4, 0, 1]]},
+  {"sun": 1, "ents": [[2, 2, 1], [3, 0, 5, 2], [1, 5, -2, 2, -1], [3, 1, 4, 0], [4, 1, 2]]}
+]'></textarea>
+  <div class="err" id="dataError" role="alert"></div>
+  <div class="actions">
+    <button class="btn" id="exampleBtn">Insert example</button>
+    <div class="row">
+      <button class="btn" id="cancelBtn">Cancel</button>
+      <button class="btn primary" id="loadBtn">Load frames</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ---- Mapping of the sun direction (0–5) to the six corners of the board ----
+  // Corner 0 is the top-left corner (left end of the first row); each step turns 60° clockwise
+  // seen from above: 1 = top-right, 2 = right, 3 = bottom-right, 4 = bottom-left, 5 = left.
+  // Angles are measured counter-clockwise from the right-hand corner.
+  const SIDE_START_DEG = 120;
+  const SIDE_STEP_DEG = -60;
+  const SUN_ELEVATION_DEG = 32;
+  const BASE_STEP_MS = 1500;
+
+  // ---- Army formation ----
+  // The army stands beside the board in regiments of 10 × 10. Regiments are added so the whole
+  // block stays roughly square: 100 regiments (10,000 Ents) make a 10 × 10 block of regiments.
+  const REG_SIDE = 10;           // Ents per rank and per file in one regiment
+  const REG_SIZE = REG_SIDE * REG_SIDE;
+  const ARMY_SPACING = 0.62;     // distance between Ents in a regiment
+  const REG_GAP = 1.5;           // extra space between regiments
+  const REG_PITCH = (REG_SIDE - 1) * ARMY_SPACING + REG_GAP;
+  const ARMY_SCALE = 0.5;        // Ents shrink to this size as they join the ranks
+  const WALK_SPEED = 2.4;        // board units per second at 1× on short trips
+  const MAX_WALK_TIME = 4.5;     // longer trips speed up so no march takes longer than this (seconds at 1×)
+  const WAKE_TIME = 0.7;         // seconds to pull up roots before marching
+  const MAX_WALKERS = 2000;      // if more than this are marching at once, extra recruits join straight away
+
+  const SQ3 = Math.sqrt(3);
+  const deg = THREE.MathUtils.degToRad;
+  const col = (h) => new THREE.Color(h).convertSRGBToLinear();
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+  const lerpAngle = (a, b, t) => { const d = ((((b - a + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) - Math.PI; return a + d * t; };
+  const sideDeg = (d) => SIDE_START_DEG + SIDE_STEP_DEG * d;
+  const $ = (id) => document.getElementById(id);
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- Renderer, scene, camera ----
+  const stage = $('stage');
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  stage.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 2000);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.minDistance = 4;
+  controls.maxDistance = 400;
+  controls.maxPolarAngle = Math.PI / 2 - 0.04;
+  controls.autoRotateSpeed = 0.7;
+
+  scene.add(new THREE.HemisphereLight(col('#dfeaff'), col('#3a2e22'), 0.55));
+  const sun = new THREE.DirectionalLight(col('#fff0d4'), 1.35);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.bias = -0.0004;
+  sun.shadow.normalBias = 0.03;
+  scene.add(sun, sun.target);
+
+  function glowTexture() {
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const g = c.getContext('2d');
+    const grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grd.addColorStop(0, 'rgba(255,220,150,1)');
+    grd.addColorStop(0.25, 'rgba(255,190,90,0.55)');
+    grd.addColorStop(1, 'rgba(255,170,60,0)');
+    g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+    return new THREE.CanvasTexture(c);
+  }
+  const sunBall = new THREE.Mesh(new THREE.SphereGeometry(0.8, 24, 16), new THREE.MeshBasicMaterial({ color: col('#ffd27a') }));
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+  glow.scale.set(7, 7, 1);
+  sunBall.add(glow);
+  scene.add(sunBall);
+
+  // ---- Shared geometry & materials ----
+  const G = {
+    tile: new THREE.CylinderGeometry(0.95, 0.95, 0.24, 6),
+    trunk: new THREE.CylinderGeometry(0.06, 0.09, 0.36, 7).translate(0, 0.18, 0),
+    cone1: new THREE.ConeGeometry(0.42, 0.55, 7).translate(0, 0.525, 0),
+    cone2: new THREE.ConeGeometry(0.3, 0.45, 7).translate(0, 0.775, 0),
+    mound: new THREE.SphereGeometry(0.34, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2),
+    sprout: new THREE.ConeGeometry(0.05, 0.22, 5).translate(0, 0.11, 0),
+    // Ent parts (unit-height model; legs hang from the hips, arms from the shoulders)
+    entBody: new THREE.CylinderGeometry(0.075, 0.1, 0.34, 7).translate(0, 0.17, 0),
+    entLeg: new THREE.CylinderGeometry(0.035, 0.05, 0.26, 6).translate(0, -0.13, 0),
+    entArm: new THREE.CylinderGeometry(0.018, 0.034, 0.28, 5).translate(0, -0.14, 0),
+    entEye: new THREE.SphereGeometry(0.022, 6, 4),
+    unitBox: new THREE.BoxGeometry(1, 1, 1),
+  };
+  const M = {
+    trunk: new THREE.MeshStandardMaterial({ color: col('#6b4a2f'), roughness: 0.9, flatShading: true }),
+    mound: new THREE.MeshStandardMaterial({ color: col('#5c4029'), roughness: 1, flatShading: true }),
+    sprout: new THREE.MeshStandardMaterial({ color: col('#9ccc5a'), roughness: 0.8, flatShading: true }),
+    plinth: new THREE.MeshStandardMaterial({ color: col('#4f3c2b'), roughness: 1, flatShading: true }),
+    parade: new THREE.MeshStandardMaterial({ color: col('#8a7553'), roughness: 1, flatShading: true }),
+    eye: new THREE.MeshBasicMaterial({ color: col('#ffe08a') }),
+    tiles: ['#7ea35c', '#759a54', '#87ac65'].map((c) => new THREE.MeshStandardMaterial({ color: col(c), roughness: 0.95, flatShading: true })),
+  };
+  const YOUNG = col('#a8d46b');
+  const OLD = col('#1d5534');
+  const treeDims = (h) => ({ H: 0.3 + 0.3 * h, W: 0.45 + 0.06 * h });
+  const leafColour = (target, h) => target.copy(YOUNG).lerp(OLD, clamp((h - 1) / 8, 0, 1));
+
+  function makeTree() {
+    const g = new THREE.Group();
+    const leaf = new THREE.MeshStandardMaterial({ color: YOUNG.clone(), roughness: 0.85, flatShading: true });
+    [[G.trunk, M.trunk], [G.cone1, leaf], [G.cone2, leaf]].forEach(([geo, mat]) => {
+      const m = new THREE.Mesh(geo, mat); m.castShadow = true; m.receiveShadow = true; g.add(m);
+    });
+    g.userData.leaf = leaf;
+    return g;
+  }
+  // h is a continuous height; between 0 and 1 the tree is emerging from the ground.
+  function shapeTree(g, h) {
+    const s = clamp(h, 0, 1);
+    const { H, W } = treeDims(Math.max(1, h));
+    g.visible = s > 0.01;
+    if (!g.visible) return;
+    g.scale.set(W * s, H * s, W * s);
+    leafColour(g.userData.leaf.color, Math.max(1, h));
+  }
+
+  function labelSprite(text) {
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const g = c.getContext('2d');
+    g.fillStyle = 'rgba(255,248,232,0.95)';
+    g.beginPath(); g.arc(64, 64, 52, 0, Math.PI * 2); g.fill();
+    g.lineWidth = 6; g.strokeStyle = 'rgba(107,74,47,0.9)'; g.stroke();
+    g.fillStyle = '#3b2a1b';
+    g.font = '700 64px "Bricolage Grotesque", system-ui, sans-serif';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(text, 64, 68);
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true }));
+    s.scale.set(0.85, 0.85, 1);
+    return s;
+  }
+
+  // ---- Board (ragged hexagon, pointy-top cells, axial coordinates) ----
+  let board = null;
+  function cellCount(R) { return 3 * R * (R + 1) + 1; }
+  function buildBoard(R) {
+    if (board) {
+      scene.remove(board.group);
+      board.group.traverse((o) => { if (o.userData.leaf) o.userData.leaf.dispose(); if (o.isSprite) { o.material.map.dispose(); o.material.dispose(); } });
+      board.plinthGeo.dispose();
+    }
+    const group = new THREE.Group();
+    const extent = SQ3 * R + 1.6;
+    const plinthGeo = new THREE.CylinderGeometry(extent, extent + 0.4, 0.7, 6);
+    const plinth = new THREE.Mesh(plinthGeo, M.plinth);
+    plinth.rotation.y = Math.PI / 6;
+    plinth.position.y = -0.24 - 0.35;
+    plinth.receiveShadow = true;
+    group.add(plinth);
+
+    const cells = [];
+    for (let i = 0; i <= 2 * R; i++) {
+      const r = i - R;
+      const qmin = Math.max(-R, -r - R);
+      const len = 2 * R + 1 - Math.abs(r);
+      for (let j = 0; j < len; j++) {
+        const q = qmin + j;
+        const x = SQ3 * (q + r / 2);
+        const z = 1.5 * r;
+        const tile = new THREE.Mesh(G.tile, M.tiles[(((q - r) % 3) + 3) % 3]);
+        tile.position.set(x, -0.12, z); tile.receiveShadow = true;
+        const tree = makeTree(); tree.position.set(x, 0, z); tree.rotation.y = Math.random() * Math.PI * 2;
+        const mound = new THREE.Mesh(G.mound, M.mound); mound.position.set(x, 0, z); mound.castShadow = true; mound.receiveShadow = true;
+        const sprout = new THREE.Mesh(G.sprout, M.sprout); sprout.position.set(x + 0.05, 0.08, z); sprout.castShadow = true;
+        group.add(tile, tree, mound, sprout);
+        cells.push({ x, z, tree, mound, sprout, recruit: false });
+      }
+    }
+
+    const labels = [];
+
+    scene.add(group);
+    const firstBuild = !board;
+    const changed = board && board.R !== R;
+    board = {
+      R, cells, group, labels, extent, plinthGeo,
+      armyX0: extent + 2.0,
+      armyZ0: 1.5 * R + 0.4,
+    };
+    const mapSize = R > 6 ? 4096 : 2048;
+    if (sun.shadow.mapSize.x !== mapSize) {
+      sun.shadow.mapSize.set(mapSize, mapSize);
+      if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
+    }
+    shellsShown = -1;
+    fitShadow();
+    if (firstBuild || changed) resetView();
+  }
+  function ensureBoard(R) { if (!board || board.R !== R) buildBoard(R); }
+
+  // Regiment i in "shell" order, so the block of regiments grows as a square.
+  function regCell(i) {
+    const n = Math.floor(Math.sqrt(i));
+    const k = i - n * n;
+    return k <= n ? [n, k] : [k - n - 1, n];
+  }
+  function regOrigin(reg) {
+    const [gx, gz] = regCell(reg);
+    return [board.armyX0 + gx * REG_PITCH, board.armyZ0 - gz * REG_PITCH];
+  }
+  function slotPos(i, out) {
+    const reg = Math.floor(i / REG_SIZE), j = i % REG_SIZE;
+    const [x0, z0] = regOrigin(reg);
+    return out.set(x0 + (j % REG_SIDE) * ARMY_SPACING, 0, z0 - Math.floor(j / REG_SIDE) * ARMY_SPACING);
+  }
+
+  // Everything to do with the army is drawn with instancing: one draw call per body part for the
+  // whole standing army, and another set for the Ents currently marching.
+  const leafInst = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85, flatShading: true });
+  const PARTS = [
+    { key: 'body', geo: G.entBody, mat: M.trunk },
+    { key: 'c1', geo: G.cone1, mat: leafInst, leaf: true },
+    { key: 'c2', geo: G.cone2, mat: leafInst, leaf: true },
+    { key: 'armL', geo: G.entArm, mat: M.trunk },
+    { key: 'armR', geo: G.entArm, mat: M.trunk },
+    { key: 'legL', geo: G.entLeg, mat: M.trunk },
+    { key: 'legR', geo: G.entLeg, mat: M.trunk },
+    { key: 'eyeL', geo: G.entEye, mat: M.eye, noShadow: true },
+    { key: 'eyeR', geo: G.entEye, mat: M.eye, noShadow: true },
+  ];
+  const _e = new THREE.Euler(), _q = new THREE.Quaternion(), _v = new THREE.Vector3(), _s = new THREE.Vector3();
+  const _root = new THREE.Matrix4(), _loc = new THREE.Matrix4(), _out = new THREE.Matrix4();
+  const _c = new THREE.Color();
+  const yAxis = new THREE.Vector3(0, 1, 0);
+
+  // Position of each body part relative to the Ent's own (unit-height) frame
+  function partLocal(key, pose, out) {
+    switch (key) {
+      case 'body': return out.makeTranslation(0, 0.22 + pose.uy, 0);
+      case 'c1': case 'c2': return out.makeTranslation(0, 0.2 + pose.uy, 0);
+      case 'eyeL': return out.makeTranslation(-0.035, 0.4 + pose.uy, 0.08);
+      case 'eyeR': return out.makeTranslation(0.035, 0.4 + pose.uy, 0.08);
+      case 'armL': case 'armR': {
+        const sd = key === 'armL' ? -1 : 1;
+        _q.setFromEuler(_e.set(sd < 0 ? pose.armL : pose.armR, 0, 0.5 * sd));
+        return out.compose(_v.set(0.09 * sd, 0.44 + pose.uy, 0), _q, _s.set(1, 1, 1));
+      }
+      default: {
+        const sd = key === 'legL' ? -1 : 1;
+        _q.setFromEuler(_e.set(sd < 0 ? pose.legL : pose.legR, 0, 0));
+        return out.compose(_v.set(0.05 * sd, 0.26, 0), _q, _s.set(1, Math.max(0.001, pose.legScale), 1));
+      }
+    }
+  }
+  const STANDING = { uy: 0, legScale: 1, legL: 0, legR: 0, armL: 0, armR: 0 };
+  const standingLocal = PARTS.map((p) => partLocal(p.key, STANDING, new THREE.Matrix4()));
+
+  function makeCrowd(cap) {
+    const meshes = PARTS.map((p) => {
+      const m = new THREE.InstancedMesh(p.geo, p.mat, cap);
+      m.instanceMatrix.array.fill(0);          // unused slots are invisible (zero scale)
+      m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      if (p.leaf) m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3);
+      m.castShadow = !p.noShadow; m.receiveShadow = !p.noShadow;
+      m.frustumCulled = false;
+      m.count = 0;
+      scene.add(m);
+      return m;
+    });
+    return { cap, meshes };
+  }
+  function growCrowd(crowd, need) {
+    if (need <= crowd.cap) return crowd;
+    let cap = crowd.cap; while (cap < need) cap *= 2;
+    const next = makeCrowd(cap);
+    crowd.meshes.forEach((old, i) => {
+      const m = next.meshes[i];
+      m.instanceMatrix.array.set(old.instanceMatrix.array);
+      if (old.instanceColor) m.instanceColor.array.set(old.instanceColor.array);
+      m.count = old.count;
+      scene.remove(old); if (old.dispose) old.dispose();
+    });
+    return next;
+  }
+  function rootMatrix(pos, rotY, h, scale) {
+    const { H, W } = treeDims(h);
+    _q.setFromAxisAngle(yAxis, rotY);
+    return _root.compose(pos, _q, _s.set(W * scale, H * 0.85 * scale, W * scale));
+  }
+  function tint(seed) {
+    leafColour(_c, 9);
+    return _c.offsetHSL(((seed * 97.13) % 1) * 0.05 - 0.025, 0, ((seed * 31.7) % 1) * 0.06 - 0.03);
+  }
+  function writeEnt(crowd, i, root, locals, seed) {
+    crowd.meshes.forEach((m, p) => {
+      _out.multiplyMatrices(root, locals[p]);
+      m.setMatrixAt(i, _out);
+      if (PARTS[p].leaf) m.setColorAt(i, tint(seed));
+    });
+  }
+  function flagCrowd(crowd, count) {
+    crowd.meshes.forEach((m) => {
+      m.count = count;
+      for (const [a, size] of [[m.instanceMatrix, 16], [m.instanceColor, 3]]) {
+        if (!a) continue;
+        a.updateRange.offset = 0; a.updateRange.count = Math.max(1, count) * size;
+        a.needsUpdate = true;
+      }
+    });
+  }
+
+  let armyCrowd = makeCrowd(2048);
+  const walkCrowd = makeCrowd(MAX_WALKERS);
+  const padMat = M.parade;
+  let pads = new THREE.InstancedMesh(G.unitBox, padMat, 1024);
+  pads.receiveShadow = true; pads.frustumCulled = false; pads.count = 0;
+  scene.add(pads);
+
+  let walkers = [];
+  let armySlots = 0;      // slots handed out (marching or arrived)
+  let armyArrived = 0;    // Ents standing in the ranks
+  let dirtyMin = Infinity, dirtyMax = -1, fullUpload = true;
+  let shellsShown = -1;
+  const tmpPos = new THREE.Vector3();
+  let marching = true;
+
+  function ensurePads(slots) {
+    const regs = Math.max(1, Math.ceil(slots / REG_SIZE));
+    if (regs <= pads.count) return;
+    const size = (REG_SIDE - 1) * ARMY_SPACING + 0.9;
+    for (let r = pads.count; r < Math.min(regs, 1024); r++) {
+      const [x0, z0] = regOrigin(r);
+      _out.compose(_v.set(x0 + (REG_SIDE - 1) * ARMY_SPACING / 2, -0.15, z0 - (REG_SIDE - 1) * ARMY_SPACING / 2), _q.identity(), _s.set(size, 0.3, size));
+      pads.setMatrixAt(r, _out);
+    }
+    pads.count = Math.min(regs, 1024);
+    pads.instanceMatrix.needsUpdate = true;
+    const shells = Math.ceil(Math.sqrt(pads.count));
+    if (shells !== shellsShown) { shellsShown = shells; fitShadow(); }
+  }
+
+  // Bounds of the board plus the army area, for shadows and the camera
+  function sceneBounds() {
+    const shells = Math.max(1, shellsShown);
+    const e = board.extent;
+    const minX = -e, maxX = Math.max(e, board.armyX0 + (shells - 1) * REG_PITCH + (REG_SIDE - 1) * ARMY_SPACING + 1);
+    const maxZ = Math.max(e, board.armyZ0 + 1), minZ = Math.min(-e, board.armyZ0 - (shells - 1) * REG_PITCH - (REG_SIDE - 1) * ARMY_SPACING - 1);
+    return { cx: (minX + maxX) / 2, cz: (minZ + maxZ) / 2, half: Math.max(maxX - minX, maxZ - minZ) / 2 };
+  }
+  function fitShadow() {
+    if (!board) return;
+    const b = sceneBounds();
+    const ext = b.half * 1.25 + 6;
+    sun.target.position.set(b.cx, 0, b.cz);
+    sun.userData.dist = ext * 1.6 + 10;
+    const sc = sun.shadow.camera;
+    sc.left = -ext; sc.right = ext; sc.top = ext; sc.bottom = -ext;
+    sc.near = 0.5; sc.far = sun.userData.dist + ext * 2;
+    sc.updateProjectionMatrix();
+  }
+
+  function ensureArmyCap(n) {
+    if (n > armyCrowd.cap) { armyCrowd = growCrowd(armyCrowd, n); fullUpload = true; }
+  }
+  function arrive(slot, h, seed) {
+    ensureArmyCap(slot + 1);
+    slotPos(slot, tmpPos);
+    writeEnt(armyCrowd, slot, rootMatrix(tmpPos, 0, h, ARMY_SCALE), standingLocal, seed);
+    armyArrived++;
+    dirtyMin = Math.min(dirtyMin, slot); dirtyMax = Math.max(dirtyMax, slot);
+  }
+  // Upload only the part of the army's buffers that changed this frame
+  function syncArmy() {
+    armyCrowd.meshes.forEach((m) => {
+      m.count = armySlots;
+      if (!fullUpload && dirtyMax < 0) return;
+      const attrs = [[m.instanceMatrix, 16], [m.instanceColor, 3]];
+      for (const [a, size] of attrs) {
+        if (!a) continue;
+        if (fullUpload) { a.updateRange.offset = 0; a.updateRange.count = -1; }
+        else { a.updateRange.offset = dirtyMin * size; a.updateRange.count = (dirtyMax - dirtyMin + 1) * size; }
+        a.needsUpdate = true;
+      }
+    });
+    fullUpload = false; dirtyMin = Infinity; dirtyMax = -1;
+  }
+
+  function spawnEnt(from, h, rot0) {
+    const slot = armySlots++;
+    ensureArmyCap(armySlots);
+    ensurePads(armySlots);
+    const seed = Math.random();
+    if (!marching || walkers.length >= MAX_WALKERS) { arrive(slot, h, seed); return true; }
+    const end = slotPos(slot, new THREE.Vector3());
+    const dist = from.distanceTo(end);
+    walkers.push({
+      slot, h, seed, rot0, start: from.clone(), end, dist,
+      heading: Math.atan2(end.x - from.x, end.z - from.z),
+      walkDur: Math.max(0.3, Math.min(MAX_WALK_TIME, dist / WALK_SPEED)),
+      age: 0, manual: !P.playing,
+    });
+    return true;
+  }
+  function flushWalkers() {
+    walkers.forEach((w) => arrive(w.slot, w.h, w.seed));
+    walkers = [];
+  }
+  function clearArmy() {
+    walkers = [];
+    armyCrowd.meshes.forEach((m) => { m.instanceMatrix.array.fill(0); });
+    fullUpload = true;
+    flagCrowd(walkCrowd, 0);
+    armySlots = 0; armyArrived = 0;
+    pads.count = 0; shellsShown = -1;
+    ensurePads(0);
+  }
+
+  // Every tree that goes from 9 straight to a negative value this step becomes a warrior
+  // and marches from its own cell to the army. The army is simply the running total of these.
+  function recruit(drops) {
+    for (const d of drops) {
+      const c = board.cells[d.k];
+      c.recruit = spawnEnt(new THREE.Vector3(c.x, 0, c.z), d.h, c.tree.rotation.y);
+    }
+  }
+
+  const pose = { uy: 0, legScale: 1, legL: 0, legR: 0, armL: 0, armR: 0 };
+  const walkLocals = PARTS.map(() => new THREE.Matrix4());
+  function updateWalkers(dt) {
+    let n = 0;
+    const still = [];
+    for (const w of walkers) {
+      if (P.playing || w.manual) w.age += dt;
+      const awake = clamp(w.age / WAKE_TIME, 0, 1);
+      const walkAge = w.age - WAKE_TIME;
+      const wt = clamp(walkAge / w.walkDur, 0, 1);
+      if (wt >= 1) { arrive(w.slot, w.h, w.seed); continue; }
+      still.push(w);
+
+      pose.uy = -0.26 * (1 - awake);
+      pose.legScale = awake;
+      let rot, bob = 0;
+      const scale = 1 + (ARMY_SCALE - 1) * ease(wt);
+      if (walkAge <= 0) {
+        rot = lerpAngle(w.rot0, w.heading, awake);
+        pose.legL = pose.legR = 0;
+        pose.armL = pose.armR = -0.6 * awake;
+      } else {
+        const ph = wt * w.dist * 3.3;
+        const sw = Math.sin(ph) * 0.5;
+        pose.legL = sw; pose.legR = -sw;
+        pose.armL = -sw * 0.8; pose.armR = sw * 0.8;
+        bob = Math.abs(Math.cos(ph)) * 0.04 * treeDims(w.h).H * scale;
+        rot = wt > 0.85 ? lerpAngle(w.heading, 0, (wt - 0.85) / 0.15) : w.heading;
+      }
+      tmpPos.lerpVectors(w.start, w.end, wt); tmpPos.y = bob;
+      PARTS.forEach((p, i) => partLocal(p.key, pose, walkLocals[i]));
+      writeEnt(walkCrowd, n++, rootMatrix(tmpPos, rot, w.h, scale), walkLocals, w.seed);
+    }
+    walkers = still;
+    flagCrowd(walkCrowd, n);
+    syncArmy();
+  }
+
+  // ---- Data handling ----
+  function normFrame(raw, idx) {
+    if (!raw || typeof raw !== 'object') throw new Error(`Frame ${idx + 1} isn’t an object.`);
+    const trees = raw.ents ?? raw.trees;
+    const sunV = raw.sun ?? raw.light ?? raw.direction;
+    if (!Array.isArray(trees)) throw new Error(`Frame ${idx + 1} has no “ents” array.`);
+    const n = trees.length;
+    if (n % 2 === 0) throw new Error(`Frame ${idx + 1} has ${n} rows; a ragged hexagon needs an odd number.`);
+    const R = (n - 1) / 2;
+    const h = [];
+    trees.forEach((row, i) => {
+      const want = 2 * R + 1 - Math.abs(i - R);
+      if (!Array.isArray(row) || row.length !== want) {
+        throw new Error(`Frame ${idx + 1}, row ${i + 1} should have ${want} values but has ${Array.isArray(row) ? row.length : 'none'}.`);
+      }
+      row.forEach((v) => {
+        const k = Number(v);
+        if (!Number.isFinite(k)) throw new Error(`Frame ${idx + 1}, row ${i + 1} contains “${v}”, which isn’t a number.`);
+        h.push(clamp(Math.round(k), -2, 9));
+      });
+    });
+    const s = Number(sunV);
+    if (!Number.isInteger(s) || s < 0 || s > 5) throw new Error(`Frame ${idx + 1} needs “sun” between 0 and 5.`);
+    return { R, h, sun: s };
+  }
+  function toRows(f) {
+    const rows = []; let k = 0;
+    for (let i = 0; i <= 2 * f.R; i++) {
+      const len = 2 * f.R + 1 - Math.abs(i - f.R);
+      rows.push(f.h.slice(k, k + len)); k += len;
+    }
+    return rows;
+  }
+
+  function simR() { return clamp(Math.floor(Number($('simSide').value) || 12), 2, 16) - 1; }
+  function makeSim(R) {
+    const fellScale = Math.min(1, 60 / cellCount(R));
+    let h = Array.from({ length: cellCount(R) }, () => Math.floor(Math.random() * 8) - 2);
+    let sunD = 0;
+    const snap = () => ({ R, h: h.slice(), sun: sunD });
+    return {
+      first: snap,
+      next() {
+        sunD = (sunD + 1) % 6;
+        h = h.map((v) => {
+          if (v === 9 && Math.random() < 0.35 * fellScale) return -2;
+          if (Math.random() < 0.4) return Math.min(9, v + 1);
+          return v;
+        });
+        return snap();
+      },
+    };
+  }
+
+  // ---- Player ----
+  const P = { mode: 'sim', sim: null, data: [], idx: 0, from: null, to: null, t: 0, playing: true, waiting: false, speed: 1 };
+
+  function prepareTransition() {
+    const { from, to } = P;
+    const drops = [];
+    board.cells.forEach((c, k) => {
+      c.recruit = false;
+      const a = from.h[k], b = to.h[k];
+      // A tree becomes a warrior only by going from 9 straight to a negative value.
+      if (a === 9 && b < 0) drops.push({ k, h: a });
+    });
+    recruit(drops);
+  }
+  function beginAt(first) {
+    ensureBoard(first.R);
+    clearArmy();
+    prepareTransition();
+    refreshUI();
+  }
+  function startSim() {
+    P.mode = 'sim'; P.sim = makeSim(simR());
+    P.from = P.sim.first(); P.to = P.sim.next();
+    P.idx = 0; P.t = 0; P.waiting = false;
+    beginAt(P.from);
+  }
+  function startData(frames) {
+    P.mode = 'data'; P.data = frames;
+    P.idx = 0; P.t = 0;
+    P.from = frames[0];
+    P.to = frames[1] || frames[0];
+    P.waiting = !frames[1];
+    beginAt(P.from);
+  }
+  function advance() {
+    P.idx++;
+    P.from = P.to;
+    if (P.mode === 'sim') {
+      P.to = P.sim.next();
+    } else {
+      const nx = P.data[P.idx + 1];
+      if (nx) { P.to = nx; P.waiting = false; } else { P.to = P.from; P.waiting = true; }
+    }
+    P.t = 0;
+    prepareTransition(); refreshUI();
+  }
+  function restart() {
+    if (P.mode === 'sim') startSim(); else startData(P.data);
+  }
+
+  // ---- Per-frame drawing ----
+  const sunDir = new THREE.Vector3();
+  let shownSide = -1, shownArmy = -1;
+  function draw(t) {
+    const e = ease(t);
+    const { from, to } = P;
+    board.cells.forEach((c, k) => {
+      const a = from.h[k], b = to.h[k];
+      const hv = c.recruit ? b : a + (b - a) * e;
+
+      if (hv > 0) shapeTree(c.tree, hv); else c.tree.visible = false;
+
+      if (hv >= 1) { c.mound.visible = false; }
+      else {
+        const ms = hv <= 0 ? 0.45 + 0.275 * (hv + 2) : 1 - hv;
+        c.mound.visible = ms > 0.02;
+        c.mound.scale.set(ms, ms * 0.8, ms);
+      }
+      const sp = hv <= 0 ? clamp(hv + 1, 0, 1) : clamp(1 - hv, 0, 1);
+      c.sprout.visible = sp > 0.02;
+      if (c.sprout.visible) c.sprout.scale.setScalar(sp);
+    });
+
+    // Sun moves the short way round between corners
+    const aA = sideDeg(from.sun), aB = sideDeg(to.sun);
+    const diff = ((((aB - aA) % 360) + 540) % 360) - 180;
+    const ang = deg(aA + diff * e);
+    const el = deg(SUN_ELEVATION_DEG);
+    sunDir.set(Math.cos(ang) * Math.cos(el), Math.sin(el), -Math.sin(ang) * Math.cos(el));
+    sun.position.copy(sunDir).multiplyScalar(sun.userData.dist).add(sun.target.position);
+    sunBall.position.copy(sunDir).multiplyScalar(board.extent + 10);
+    setCompass(ang);
+  }
+
+  function updateArmyCount() {
+    const n = armyArrived;
+    if (n === shownArmy) return;
+    const grew = n > shownArmy && shownArmy >= 0;
+    shownArmy = n;
+    $('armyCount').textContent = n.toLocaleString('en-GB');
+    $('armyLabel').textContent = n === 1 ? 'Ent in the army' : 'Ents in the army';
+    const pill = $('armyPill');
+    if (grew) { pill.classList.remove('bump'); void pill.offsetWidth; pill.classList.add('bump'); }
+  }
+
+  // ---- UI ----
+  const compassHex = $('compassHex');
+  compassHex.setAttribute('points', [0, 1, 2, 3, 4, 5].map((i) => {
+    const a = deg(60 * i); return `${(Math.cos(a) * 9).toFixed(2)},${(-Math.sin(a) * 9).toFixed(2)}`;
+  }).join(' '));
+  function setCompass(rad) {
+    const c = $('compassSun');
+    c.setAttribute('cx', (Math.cos(rad) * 12.5).toFixed(2));
+    c.setAttribute('cy', (-Math.sin(rad) * 12.5).toFixed(2));
+  }
+
+  function refreshUI() {
+    $('playBtn').textContent = P.playing ? 'Pause' : 'Play';
+    $('stepBtn').disabled = P.waiting;
+    $('sourceLabel').textContent = P.mode === 'sim'
+      ? 'Showing a live simulation'
+      : `Showing your data, ${P.data.length} frame${P.data.length === 1 ? '' : 's'}`;
+    $('simBtn').hidden = P.mode === 'sim';
+  }
+
+  function setSpeed(v) {
+    P.speed = Math.pow(2, v);
+    const s = P.speed;
+    $('speedVal').textContent = `${s >= 1 ? +s.toFixed(2) : +s.toFixed(3)}×`;
+  }
+  function zoom(f) {
+    const off = camera.position.clone().sub(controls.target);
+    off.setLength(clamp(off.length() * f, controls.minDistance, controls.maxDistance));
+    camera.position.copy(controls.target).add(off);
+  }
+  function resetView() {
+    if (!board) return;
+    const b = sceneBounds();
+    const d = b.half * 2.3 + 6;
+    controls.target.set(b.cx, 0.8, b.cz);
+    camera.position.set(b.cx, d * 0.68, b.cz + d * 0.9);
+    controls.update();
+  }
+
+  $('playBtn').addEventListener('click', () => { P.playing = !P.playing; refreshUI(); });
+  $('stepBtn').addEventListener('click', () => { if (!P.waiting) { P.t = 0; advance(); } });
+  $('restartBtn').addEventListener('click', restart);
+  $('speed').addEventListener('input', (e) => setSpeed(Number(e.target.value)));
+  $('zoomIn').addEventListener('click', () => zoom(0.8));
+  $('zoomOut').addEventListener('click', () => zoom(1.25));
+  $('resetView').addEventListener('click', resetView);
+  $('autoRotate').addEventListener('change', (e) => { controls.autoRotate = e.target.checked; });
+  $('marchToggle').addEventListener('change', (e) => { marching = e.target.checked; if (!marching) flushWalkers(); });
+  $('simBtn').addEventListener('click', startSim);
+  $('simSide').addEventListener('change', () => { if (P.mode === 'sim') startSim(); });
+
+  const panel = $('panel');
+  $('panelToggle').addEventListener('click', () => {
+    const collapsed = panel.classList.toggle('collapsed');
+    $('panelToggle').textContent = collapsed ? 'Show' : 'Hide';
+    $('panelToggle').setAttribute('aria-expanded', String(!collapsed));
+  });
+  if (window.innerWidth <= 640) $('panelToggle').click();
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest && e.target.closest('input, textarea, dialog')) return;
+    if (e.code === 'Space') { e.preventDefault(); $('playBtn').click(); }
+    else if (e.key === 'ArrowRight') $('stepBtn').click();
+  });
+
+  // ---- Data dialog ----
+  const dlg = $('dataDialog');
+  $('dataBtn').addEventListener('click', () => { $('dataError').textContent = ''; dlg.showModal(); });
+  $('cancelBtn').addEventListener('click', () => dlg.close());
+  $('exampleBtn').addEventListener('click', () => {
+    const sim = makeSim(3);
+    const frames = [sim.first()];
+    for (let i = 0; i < 11; i++) frames.push(sim.next());
+    $('dataInput').value = '[\n' + frames.map((f) =>
+      `  {"sun": ${f.sun}, "ents": [\n` +
+      toRows(f).map((r) => '    [' + r.join(', ') + ']').join(',\n') + '\n  ]}'
+    ).join(',\n') + '\n]';
+    $('dataError').textContent = '';
+  });
+  function parseFrames(input) {
+    let raw = input;
+    if (raw && !Array.isArray(raw) && Array.isArray(raw.frames)) raw = raw.frames;
+    if (!Array.isArray(raw)) raw = [raw];
+    if (!raw.length) throw new Error('There are no frames to show.');
+    const frames = raw.map(normFrame);
+    const R = frames[0].R;
+    const bad = frames.findIndex((f) => f.R !== R);
+    if (bad >= 0) throw new Error(`Frame ${bad + 1} has a different board size from frame 1.`);
+    return frames;
+  }
+  function applyLoaded(frames) {
+    startData(frames);
+    P.playing = true; refreshUI();
+  }
+  $('loadBtn').addEventListener('click', () => {
+    try {
+      const txt = $('dataInput').value.trim();
+      if (!txt) throw new Error('Paste some JSON first, or use “Insert example”.');
+      let json;
+      try { json = JSON.parse(txt); } catch (err) { throw new Error(`That isn’t valid JSON: ${err.message}`); }
+      applyLoaded(parseFrames(json));
+      dlg.close();
+    } catch (err) { $('dataError').textContent = err.message; }
+  });
+
+  // ---- Programmatic API (for streaming frames in from your own code) ----
+  window.hexForest = {
+    load(frames) { applyLoaded(parseFrames(frames)); },
+    push(frame) {
+      const f = normFrame(frame, P.mode === 'data' ? P.data.length : 0);
+      if (P.mode !== 'data' || f.R !== P.data[0].R) { startData([f]); return; }
+      P.data.push(f);
+      if (P.waiting) { P.to = f; P.waiting = false; P.t = 0; prepareTransition(); }
+      refreshUI();
+    },
+    play() { P.playing = true; refreshUI(); },
+    pause() { P.playing = false; refreshUI(); },
+    setSpeed(x) { const v = clamp(Math.log2(x), -3, 3); $('speed').value = v; setSpeed(v); },
+  };
+
+  // ---- Loop ----
+  function resize() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', resize);
+
+  let last = performance.now();
+  function tick(now) {
+    const dt = Math.min(100, now - last); last = now;
+    if (P.playing && !P.waiting) {
+      const stepMs = reducedMotion ? BASE_STEP_MS * 1.5 : BASE_STEP_MS;
+      P.t += (dt * P.speed) / stepMs;
+      while (P.t >= 1 && !P.waiting) { P.t -= 1; advance(); }
+      if (P.waiting) P.t = 0;
+    }
+    draw(P.waiting ? 1 : P.t);
+    const armyDt = (dt / 1000) * P.speed;
+    updateWalkers(armyDt);
+    updateArmyCount();
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(tick);
+  }
+
+  setSpeed(0);
+  startSim();
+  resize();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

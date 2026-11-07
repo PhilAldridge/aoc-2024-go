@@ -1,6 +1,10 @@
 package coords
 
-import "github.com/PhilAldridge/aoc-2024-go/pkg/ints"
+import (
+	"fmt"
+
+	"github.com/PhilAldridge/aoc-2024-go/pkg/ints"
+)
 
 type Coord struct {
 	I int
@@ -171,6 +175,13 @@ func CoordInSlice(c Coord, sl []Coord) bool {
 	return false
 }
 
+var (
+	Right = NewCoord(0, 1)
+	Down  = NewCoord(1, 0)
+	Left  = NewCoord(0, -1)
+	Up    = NewCoord(-1, 0)
+)
+
 var DirectionsInOrder = [4]Coord{
 	NewCoord(0, 1),
 	NewCoord(-1, 0),
@@ -184,7 +195,7 @@ func TurnLeft(a Coord) Coord {
 			return DirectionsInOrder[(i+1)%4]
 		}
 	}
-	panic("")
+	panic(fmt.Errorf("%v", a))
 }
 
 func TurnRight(a Coord) Coord {
@@ -193,16 +204,16 @@ func TurnRight(a Coord) Coord {
 			return DirectionsInOrder[(i+3)%4]
 		}
 	}
-	panic("")
+	panic(fmt.Errorf("%v", a))
 }
 
 func TurnBack(a Coord) Coord {
 	for i, v := range DirectionsInOrder {
-		if v.IsSameDirectionAs(a) {
+		if v.Equals(a) {
 			return DirectionsInOrder[(i+2)%4]
 		}
 	}
-	panic("")
+	panic(fmt.Errorf("%v", a))
 }
 
 func ManhattanDistance(a Coord, b Coord) int {

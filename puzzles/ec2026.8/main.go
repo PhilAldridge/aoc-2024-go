@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -57,16 +60,44 @@ func part3(name string) int {
 	lastGrownWarriors := 0
 	round := 0
 	directionRows := ents.GetAllDirectionRows()
+	jsonStrings := []string{}
 
 	for {
 		lastTotal, lastGrownWarriors = genericRound(ents, directionRows[round%len(directionRows)], true)
 		round++
 		grownWarriors += lastGrownWarriors
 		total += lastTotal
+
+		jsonBytes, err := json.Marshal(roundJson{
+			Ents: ents,
+			Sun:  round % len(directionRows),
+		})
+		if err != nil {
+			panic(err)
+		}
+
+		jsonStrings = append(jsonStrings, string(jsonBytes))
+
 		if grownWarriors >= 100000 {
+			file, err := os.OpenFile("output.txt", os.O_WRONLY|os.O_CREATE, 0666)
+			if err != nil {
+				fmt.Println("File does not exists or cannot be created")
+				os.Exit(1)
+			}
+			defer file.Close()
+
+			w := bufio.NewWriter(file)
+			fmt.Fprintf(w, "[%s]", strings.Join(jsonStrings, ","))
+
+			w.Flush()
 			return total
 		}
 	}
+}
+
+type roundJson struct {
+	Sun  int     `json:"sun"`
+	Ents [][]int `json:"ents"`
 }
 
 func genericRound(ents hexgrids.HexGrid, rows [][]coords.Coord, growth bool) (int, int) {
