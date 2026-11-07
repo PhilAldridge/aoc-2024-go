@@ -47,7 +47,6 @@ func part1(name string) int {
 func part2(name string) int {
 	walls, ghosts := parseWallsAndGhosts(name)
 	rounds := 0
-	state:= state{ghosts.copy()}
 
 	for len(ghosts) > 0 {
 		rounds++
@@ -64,8 +63,6 @@ func part2(name string) int {
 				fmt.Println(rounds)
 			}
 		}
-
-		
 	}
 
 	return rounds
@@ -83,50 +80,7 @@ type ghostType struct {
 	collisions          int
 }
 
-type ghostsType []ghostType
-
-func (gs ghostsType) copy() ghostsType {
-	out:= make(ghostsType, len(gs))
-	for _,g:= range gs {
-		out = append(out, ghostType{
-			id: g.id,
-			direction: g.direction,
-			position: g.position,
-			collisions: g.collisions,
-		})
-	}
-
-	return out
-}
-
-func (gs ghostsType) equal(gs2 ghostsType) bool {
-	for i, g:= range gs {
-		g2 := gs[i]
-
-		if !g.position.Equals(g2.position) || !g.direction.Equals(g2.position) {
-			return false
-		}
-	}
-	return true
-}
-
-type state []ghostsType
-
-func (s state) checkLoop(gs ghostsType) (int,[]int, bool) {
-	for i, prevState:= range s {
-		if prevState.equal(gs) {
-			collisions:= []int{}
-			for j,g:= range gs {
-				collisions = append(collisions, g.collisions - prevState[j].collisions)
-			}
-			return len(s) - i, collisions, true
-		}
-	}
-
-	return 0, nil, false
-}
-
-func parseWallsAndGhosts(name string) (map[coords.Coord]bool, ghostsType) {
+func parseWallsAndGhosts(name string) (map[coords.Coord]bool, []ghostType) {
 	walls := make(map[coords.Coord]bool)
 	ghosts := []ghostType{}
 
