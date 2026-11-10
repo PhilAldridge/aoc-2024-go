@@ -65,6 +65,7 @@ func solveWithLoopCheck(name string, limit int) int {
 		}
 
 		if next, died := ghosts.Kill(limit); died {
+			// Reset states when a ghost dies
 			state = stateType{}
 			ghosts = next
 		}
@@ -74,10 +75,13 @@ func solveWithLoopCheck(name string, limit int) int {
 		}
 
 		if next, died := ghosts.Kill(limit); died {
+			// Reset states when a ghost dies
 			state = stateType{}
 			ghosts = next
 		}
 
+		// If we have reached this state before, find the number of times we can repeat loop before a ghost dies
+		// and skip to that point
 		if roundsInLoop, collisionsInLoop, loopFound := state.checkLoop(ghosts); loopFound {
 			minRepeats := math.MaxInt
 			for i, g := range ghosts {
@@ -89,13 +93,18 @@ func solveWithLoopCheck(name string, limit int) int {
 					minRepeats = canLoop
 				}
 			}
+
+			// For some reason, the last ghost skips too far without this
 			if len(ghosts) == 1 {
 				minRepeats--
 			}
+
 			rounds += roundsInLoop * minRepeats
 			for i := range ghosts {
 				ghosts[i].collisions = ghosts[i].collisions + minRepeats*collisionsInLoop[i]
 			}
+
+			// Reset state after loop found
 			state = stateType{}
 		} else {
 			state = append(state, ghosts.copy())
@@ -132,7 +141,6 @@ func (gs ghostsType) equal(gs2 ghostsType) bool {
 		g2 := gs2[i]
 
 		if !g.position.Equals(g2.position) || !g.direction.Equals(g2.direction) {
-			// fmt.Printf("failed at %d with %v,%v", i, g, g2)
 			return false
 		}
 	}
@@ -141,23 +149,24 @@ func (gs ghostsType) equal(gs2 ghostsType) bool {
 
 type stateType []ghostsType
 
-func (s stateType) checkLoop(gs ghostsType) (int, []int, bool) {
+// checkLoop looks through previous states to see if current ghost positions have occurred before
+func (s stateType) checkLoop(gs ghostsType) (loopLength int, collisionsPerGhost []int, loopFound bool) {
 	for i, prevState := range s {
 		if prevState.equal(gs) {
-			collisions := []int{}
+			collisionsPerGhost = []int{}
 			for j, g := range gs {
-				collisions = append(collisions, g.collisions-prevState[j].collisions)
+				collisionsPerGhost = append(collisionsPerGhost, g.collisions-prevState[j].collisions)
 			}
-			return len(s) - i, collisions, true
+			return len(s) - i, collisionsPerGhost, true
 		}
 	}
 
 	return 0, nil, false
 }
 
-func parseWallsAndGhosts(name string) (map[coords.Coord]bool, ghostsType) {
-	walls := make(map[coords.Coord]bool)
-	ghosts := []ghostType{}
+func parseWallsAndGhosts(name string) (walls map[coords.Coord]bool, ghosts ghostsType) {
+	walls = make(map[coords.Coord]bool)
+	ghosts = []ghostType{}
 
 	for i, row := range files.ReadLines(name) {
 		for j, char := range row {
