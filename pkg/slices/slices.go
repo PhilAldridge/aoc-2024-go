@@ -1,6 +1,7 @@
 package slices
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/PhilAldridge/aoc-2024-go/pkg/ints"
@@ -52,4 +53,14 @@ func StringSliceToIntMapIntSlice(input []string, separator1 string, separator2 s
 	}
 
 	return result
+}
+
+func HasOverlap[T comparable](a, b []T) bool {
+	for _, i := range a {
+		if slices.Contains(b, i) {
+			return true
+		}
+	}
+
+	return false
 }
