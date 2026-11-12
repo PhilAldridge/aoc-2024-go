@@ -11,11 +11,11 @@ import (
 
 func main() {
 	start := time.Now()
-	fmt.Println("Part 1 answer: ", part1("input.txt"))
+	fmt.Println("Part 1 answer: ", solve("input.txt"))
 	split := time.Now()
-	fmt.Println("Part 2 answer: ", part2("input2.txt"))
+	fmt.Println("Part 2 answer: ", solve("input2.txt"))
 	split2 := time.Now()
-	fmt.Println("Part 3 answer: ", part3("input3.txt"))
+	fmt.Println("Part 3 answer: ", solve("input3.txt"))
 
 	fmt.Println()
 	fmt.Println("Part 1: ", split.Sub(start))
@@ -23,33 +23,21 @@ func main() {
 	fmt.Println("Part 2: ", time.Since(split2))
 }
 
-func part1(name string) int {
+func solve(name string) int {
 	total := 0
 
 	stacks := parseInput(name)
-	for i, stack := range stacks {
-		score:= stack.runKuhns()
-		// score, _ := reflect(stack.positions, math.MaxInt, scoreMap)
-
-		fmt.Println(i, score, stack.positions[0])
-		total += score
+	for _, stack := range stacks {
+		total += stack.runKuhnsAlgorithm()
 	}
 
 	return total
 }
 
-func part2(name string) int {
-	return part1(name)
-}
-
-func part3(name string) int {
-	return part1(name)
-}
-
 type stack struct {
 	positions                    []positionType
 	horizontalRuns, verticalRuns [][]int
-	blockVRunMap map[int]int
+	blockVRunMap                 map[int]int
 }
 
 type positionType struct {
@@ -57,32 +45,32 @@ type positionType struct {
 	hIndex, vIndex int
 }
 
-func (s stack) runKuhns() int {
-	owners:=map[int]int{}
-	total:=0
+// Kuhn's algorithm finds the `maximum matching“ (the largest set of edges that pair off nodes into distinct pairs) of a graph
+// Since hRun,vRun are the nodes, connected by the blocks, a hRun can only be connected to vRuns, making this a bipartite graph
+// We want a `minimum vertex cover` (minimum edges touching every node). For a bipartite graph, this is equivalent to a maximum matching
+func (s stack) runKuhnsAlgorithm() int {
+	owners := map[int]int{}
 
-	for i:= range s.horizontalRuns {
-		visited:=map[int]bool{}
-
-		if tryClaim(i, s.horizontalRuns, s.verticalRuns, visited, owners, s.blockVRunMap) {
-			total ++
-		}
-
+	for i := range s.horizontalRuns {
+		visited := map[int]bool{}
+		tryClaim(i, s.horizontalRuns, s.verticalRuns, visited, owners, s.blockVRunMap)
 	}
 
-	return total
+	return len(owners)
 }
 
+// tryClaim attempts to pair off a vRun to a given hRun, swapping already claimed runs to get as many pairs as possible
+// visited ensures each vRun is only checked once per hRun
 func tryClaim(i int, hRuns [][]int, vRuns [][]int, visited map[int]bool, owners map[int]int, hvmap map[int]int) bool {
-	for _, blockIndex:= range hRuns[i] {
-		vRunIndex:= hvmap[blockIndex]
+	for _, blockIndex := range hRuns[i] {
+		vRunIndex := hvmap[blockIndex]
 		if visited[vRunIndex] {
 			continue
 		}
 
 		visited[vRunIndex] = true
 
-		if owner, ok:=owners[vRunIndex]; !ok {
+		if owner, ok := owners[vRunIndex]; !ok {
 			owners[vRunIndex] = i
 			return true
 		} else {
@@ -91,14 +79,14 @@ func tryClaim(i int, hRuns [][]int, vRuns [][]int, visited map[int]bool, owners 
 				return true
 			}
 		}
-	} 
+	}
 
 	return false
 }
 
 func (s *stack) populateRuns() {
 	s.blockVRunMap = map[int]int{}
-	slices.SortFunc(s.positions, func(a,b positionType) int {
+	slices.SortFunc(s.positions, func(a, b positionType) int {
 		if a.pos.I == b.pos.I {
 			return a.pos.J - b.pos.J
 		}
