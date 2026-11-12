@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"math"
 	"slices"
 	"time"
 
@@ -29,13 +27,9 @@ func part1(name string) int {
 	total := 0
 
 	stacks := parseInput(name)
-
 	for i, stack := range stacks {
-		if i == 25 {
-			fmt.Print("f")
-		}
-		scoreMap := map[string]int{"[]": 0}
-		score, _ := reflect(stack.positions, math.MaxInt, scoreMap)
+		score:= stack.runKuhns()
+		// score, _ := reflect(stack.positions, math.MaxInt, scoreMap)
 
 		fmt.Println(i, score, stack.positions[0])
 		total += score
@@ -53,175 +47,95 @@ func part3(name string) int {
 }
 
 type stack struct {
-	positions []coords.Coord
+	positions                    []positionType
+	horizontalRuns, verticalRuns [][]int
+	blockVRunMap map[int]int
 }
 
-func lowerBound(ps []coords.Coord) int {
-	is, js := make(map[int]bool), make(map[int]bool)
-
-	for _, p := range ps {
-		is[p.I] = true
-		js[p.J] = true
-	}
-
-	if len(is) < len(js) {
-		return len(is)
-	}
-
-	return len(js)
+type positionType struct {
+	pos            coords.Coord
+	hIndex, vIndex int
 }
 
-func reflect(positions []coords.Coord, upperBound int, scoreMap map[string]int) (int, bool) {
-	positionsBytes, _ := json.Marshal(positions)
-	if v, ok := scoreMap[string(positionsBytes)]; ok {
-		return v, true
+func (s stack) runKuhns() int {
+	owners:=map[int]int{}
+	total:=0
+
+	for i:= range s.horizontalRuns {
+		visited:=map[int]bool{}
+
+		if tryClaim(i, s.horizontalRuns, s.verticalRuns, visited, owners, s.blockVRunMap) {
+			total ++
+		}
+
 	}
 
-	if lowerBound(positions) >= upperBound {
-		return 0, false
-	}
+	return total
+}
 
-	maxRemovals := getMaxRemovals(positions)
+func tryClaim(i int, hRuns [][]int, vRuns [][]int, visited map[int]bool, owners map[int]int, hvmap map[int]int) bool {
+	for _, blockIndex:= range hRuns[i] {
+		vRunIndex:= hvmap[blockIndex]
+		if visited[vRunIndex] {
+			continue
+		}
 
-	score := upperBound
-	scoreFound := false
+		visited[vRunIndex] = true
 
-	for _, removals := range maxRemovals {
-		newPos := []coords.Coord{}
-		for _, p := range positions {
-			if !slices.ContainsFunc(removals, func(pos coords.Coord) bool { return pos.Equals(p) }) {
-				newPos = append(newPos, p)
+		if owner, ok:=owners[vRunIndex]; !ok {
+			owners[vRunIndex] = i
+			return true
+		} else {
+			if tryClaim(owner, hRuns, vRuns, visited, owners, hvmap) {
+				owners[vRunIndex] = i
+				return true
 			}
 		}
+	} 
 
-		next, ok := reflect(newPos, score-1, scoreMap)
-		if !ok {
-			continue
-		}
-		newPosBytes, _ := json.Marshal(newPos)
-		scoreMap[string(newPosBytes)] = next
-		scoreFound = true
-		newScore := 1 + next
-		if newScore == lowerBound(positions) {
-			scoreMap[string(positionsBytes)] = newScore
-			return newScore, true
-		}
-		if newScore < score {
-			score = newScore
-		}
-	}
-
-	scoreMap[string(positionsBytes)] = score
-	return score, scoreFound
+	return false
 }
 
-func getMaxRemovals(positions []coords.Coord) [][]coords.Coord {
-	maxRemovals := [][]coords.Coord{}
-	length := 0
-
-	triedH := []coords.Coord{}
-	for _, pos := range positions {
-		if slices.ContainsFunc(triedH, func(p coords.Coord) bool { return p.Equals(pos) }) {
-			continue
+func (s *stack) populateRuns() {
+	s.blockVRunMap = map[int]int{}
+	slices.SortFunc(s.positions, func(a,b positionType) int {
+		if a.pos.I == b.pos.I {
+			return a.pos.J - b.pos.J
 		}
 
-		removals := []coords.Coord{}
-		newPos := pos
-		for slices.ContainsFunc(positions, func(pos coords.Coord) bool { return pos.Equals(newPos) }) {
-			removals = append(removals, newPos)
-			newPos = newPos.Left(1)
+		return a.pos.I - b.pos.I
+	})
+	for i, position := range s.positions {
+		if position.hIndex == -1 {
+			hRun := []int{}
+			newPos := position.pos
+			j := i
+			for j != -1 {
+				hRun = append(hRun, j)
+				s.positions[j].hIndex = len(s.horizontalRuns)
+				newPos = newPos.Right(1)
+				j = slices.IndexFunc(s.positions, func(p positionType) bool { return p.pos.Equals(newPos) })
+			}
+
+			s.horizontalRuns = append(s.horizontalRuns, hRun)
 		}
 
-		newPos = pos.Right(1)
-		for slices.ContainsFunc(positions, func(pos coords.Coord) bool { return pos.Equals(newPos) }) {
-			removals = append(removals, newPos)
-			newPos = newPos.Right(1)
+		if position.vIndex == -1 {
+			vRun := []int{}
+			newPos := position.pos
+			j := i
+			for j != -1 {
+				vRun = append(vRun, j)
+				s.positions[j].vIndex = len(s.verticalRuns)
+				newPos = newPos.Down(1)
+				j = slices.IndexFunc(s.positions, func(p positionType) bool { return p.pos.Equals(newPos) })
+			}
+
+			s.verticalRuns = append(s.verticalRuns, vRun)
 		}
 
-		triedH = append(triedH, removals...)
-
-		if len(removals) == length {
-			maxRemovals = append(maxRemovals, removals)
-			continue
-		}
-
-		if len(removals) > length {
-			length = len(removals)
-			maxRemovals = [][]coords.Coord{removals}
-		}
+		s.blockVRunMap[i] = s.positions[i].vIndex
 	}
-
-	triedV := []coords.Coord{}
-	for _, pos := range positions {
-		if slices.ContainsFunc(triedV, func(p coords.Coord) bool { return p.Equals(pos) }) {
-			continue
-		}
-
-		removals := []coords.Coord{}
-		newPos := pos
-		for slices.ContainsFunc(positions, func(pos coords.Coord) bool { return pos.Equals(newPos) }) {
-			removals = append(removals, newPos)
-			newPos = newPos.Up(1)
-		}
-
-		newPos = pos.Down(1)
-		for slices.ContainsFunc(positions, func(pos coords.Coord) bool { return pos.Equals(newPos) }) {
-			removals = append(removals, newPos)
-			newPos = newPos.Down(1)
-		}
-
-		triedV = append(triedV, removals...)
-
-		if len(removals) == length {
-			maxRemovals = append(maxRemovals, removals)
-			continue
-		}
-
-		if len(removals) > length {
-			length = len(removals)
-			maxRemovals = [][]coords.Coord{removals}
-		}
-	}
-
-	return maxRemovals
-}
-
-func length(r [][]coords.Coord) int {
-	if len(r) == 0 {
-		return 0
-	}
-
-	return len(r[0])
-}
-
-func getRemovals(p coords.Coord, positions []coords.Coord) [][]coords.Coord {
-	out := [][]coords.Coord{{}, {}}
-
-	newPos := p
-	for slices.ContainsFunc(positions, func(pos coords.Coord) bool { return pos.Equals(newPos) }) {
-		out[0] = append(out[0], newPos)
-		newPos = newPos.Up(1)
-	}
-
-	newPos = p.Down(1)
-	for slices.ContainsFunc(positions, func(pos coords.Coord) bool { return pos.Equals(newPos) }) {
-		out[0] = append(out[0], newPos)
-		newPos = newPos.Down(1)
-	}
-
-	newPos = p
-	for slices.ContainsFunc(positions, func(pos coords.Coord) bool { return pos.Equals(newPos) }) {
-		out[1] = append(out[1], newPos)
-		newPos = newPos.Left(1)
-	}
-
-	newPos = p.Right(1)
-	for slices.ContainsFunc(positions, func(pos coords.Coord) bool { return pos.Equals(newPos) }) {
-		out[1] = append(out[1], newPos)
-		newPos = newPos.Right(1)
-	}
-
-	return out
 }
 
 func parseInput(name string) []stack {
@@ -236,14 +150,14 @@ func parseInput(name string) []stack {
 			newPos := coords.NewCoord(i, j)
 
 			if slices.ContainsFunc(out, func(s stack) bool {
-				return slices.ContainsFunc(s.positions, func(p coords.Coord) bool {
-					return p.Equals(newPos)
+				return slices.ContainsFunc(s.positions, func(p positionType) bool {
+					return p.pos.Equals(newPos)
 				})
 			}) {
 				continue
 			}
 
-			newPositions := []coords.Coord{newPos}
+			newPositions := []positionType{{pos: newPos, hIndex: -1, vIndex: -1}}
 			queue := []coords.Coord{}
 			for _, adj := range newPos.GetAdjacent() {
 				queue = append(queue, adj)
@@ -257,10 +171,10 @@ func parseInput(name string) []stack {
 						p.J >= 0 &&
 						p.J < len(grid[0]) &&
 						grid[p.I][p.J] == '#' &&
-						!slices.ContainsFunc(newPositions, func(pos coords.Coord) bool {
-							return pos.Equals(p)
+						!slices.ContainsFunc(newPositions, func(pos positionType) bool {
+							return pos.pos.Equals(p)
 						}) {
-						newPositions = append(newPositions, p)
+						newPositions = append(newPositions, positionType{pos: p, hIndex: -1, vIndex: -1})
 
 						for _, adj := range p.GetAdjacent() {
 							nextQueue = append(nextQueue, adj)
@@ -271,7 +185,10 @@ func parseInput(name string) []stack {
 				queue = nextQueue
 			}
 
-			out = append(out, stack{positions: newPositions})
+			newStack := stack{positions: newPositions}
+			newStack.populateRuns()
+
+			out = append(out, newStack)
 		}
 	}
 
