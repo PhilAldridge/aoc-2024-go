@@ -108,25 +108,37 @@ func part1(name string) int {
 }
 
 func part2(name string) int {
-	cavern := parseInput(name)
+	return solve(name, 2026)
+}
 
-	countNeeded := 2026
+func part3(name string) int {
+	return solve(name, 202620262026)
+}
+
+func solve(name string, limit int) int {
+	cavern := parseInput(name)
 
 	initialState := stateType{
 		lastEdge:    nil,
 		currentNode: cavern.start,
 	}
 
-	states := map[stateType]int{initialState: 0}
+	states := map[stateType]mapOut{initialState: {
+		distance: 0,
+		bestPath: []*edgeType{},
+	}}
 	statesToCheck := []stateType{initialState}
+
+	loopFound := []loopInfo{}
 
 	for {
 		nextState := stateType{}
 		min := math.MaxInt
 		nextStatesToCheck := []stateType{}
+		path := []*edgeType{}
 
 		for _, state := range statesToCheck {
-			dist := states[state]
+			stateOut := states[state]
 			new := false
 			for _, edge := range state.currentNode.edges {
 				newCount := state.count + edge.sulphurCount
@@ -151,10 +163,12 @@ func part2(name string) int {
 				}
 
 				new = true
-				newDist := dist + edge.weight
+				newDist := stateOut.distance + edge.weight
 				if newDist < min {
 					nextState = testState
 					min = newDist
+					path = append([]*edgeType{}, stateOut.bestPath...)
+					path = append(path, edge)
 				}
 			}
 
@@ -167,91 +181,62 @@ func part2(name string) int {
 			panic("no states added")
 		}
 
-		if nextState.count == countNeeded {
-			if nextState.currentNode == cavern.end {
-				return min
-			}
-
+		if nextState.count >= limit && nextState.currentNode == cavern.end {
+			return min
 		}
 
-		states[nextState] = min
+		states[nextState] = mapOut{
+			distance: min,
+			bestPath: path,
+		}
 
 		statesToCheck = append(nextStatesToCheck, nextState)
+
+		if len(loopFound) < 10 && nextState.count > 600 {
+			distance, sulphur, found := getLoop(path)
+			if !found {
+				continue
+			}
+
+			canLoopTimes := (limit - nextState.count - 600) / sulphur
+
+			nextState.count += sulphur * canLoopTimes
+
+			loopFound = append(loopFound, loopInfo{
+				s: nextState,
+				o: mapOut{
+					distance: min + distance*canLoopTimes,
+				},
+			})
+
+			if len(loopFound) == 9 {
+				slices.SortFunc(loopFound, func(a, b loopInfo) int {
+					ratioA := float32(a.s.count) / float32(a.o.distance)
+					ratioB := float32(b.s.count) / float32(b.o.distance)
+
+					if ratioA > ratioB {
+						return -1
+					}
+
+					if ratioA < ratioB {
+						return 1
+					}
+					return 0
+				})
+
+				states = map[stateType]mapOut{
+					loopFound[0].s: loopFound[0].o,
+				}
+
+				statesToCheck = []stateType{loopFound[0].s}
+			}
+		}
 	}
 }
 
-const sulphurToCollectP3 = 202620262026
-
-
-func part3(name string) int {
-	cavern := parseInput(name)
-
-	initialState := stateType{
-		lastEdge:    nil,
-		currentNode: cavern.start,
-	}
-
-	states := map[stateType]int{initialState: 0}
-	statesToCheck := []stateType{initialState}
-
-	for {
-		nextState := stateType{}
-		min := math.MaxInt
-		nextStatesToCheck := []stateType{}
-
-		for _, state := range statesToCheck {
-			dist := states[state]
-			new := false
-			for _, edge := range state.currentNode.edges {
-				newCount := state.count + edge.sulphurCount
-				if edge == state.lastEdge {
-					continue
-				}
-
-				newNode := edge.to
-				if newNode == state.currentNode {
-					newNode = edge.from
-				}
-
-				testState := stateType{
-					count:       newCount,
-					lastEdge:    edge,
-					currentNode: newNode,
-				}
-
-				_, exists := states[testState]
-				if exists {
-					continue
-				}
-
-				new = true
-				newDist := dist + edge.weight
-				if newDist < min {
-					nextState = testState
-					min = newDist
-				}
-			}
-
-			if new {
-				nextStatesToCheck = append(nextStatesToCheck, state)
-			}
-		}
-
-		if min == math.MaxInt {
-			panic("no states added")
-		}
-
-		if nextState.count == 2026 {
-			if nextState.currentNode == cavern.end {
-				return min
-			}
-
-		}
-
-		states[nextState] = min
-
-		statesToCheck = append(nextStatesToCheck, nextState)
-	}
+type loopInfo struct {
+	s stateType
+	o mapOut
 }
 
 type nodeType struct {
@@ -275,6 +260,28 @@ type stateType struct {
 	currentNode *nodeType
 	lastEdge    *edgeType
 	count       int
+}
+
+type mapOut struct {
+	distance int
+	bestPath []*edgeType
+}
+
+func getLoop(edges []*edgeType) (distance, sulphur int, found bool) {
+	lastEdge := edges[len(edges)-1]
+
+	for i := len(edges) - 2; i >= 0; i-- {
+		if edges[i] == lastEdge {
+			for j := i + 1; j < len(edges); j++ {
+				distance += edges[j].weight
+				sulphur += edges[j].sulphurCount
+			}
+
+			return distance, sulphur, true
+		}
+	}
+
+	return 0, 0, false
 }
 
 func parseInput(name string) cavernType {
