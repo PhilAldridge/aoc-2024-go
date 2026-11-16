@@ -2,7 +2,12 @@ package main
 
 import (
 	"fmt"
+	"math"
+	"slices"
 	"time"
+
+	"github.com/PhilAldridge/aoc-2024-go/pkg/coords"
+	"github.com/PhilAldridge/aoc-2024-go/pkg/files"
 )
 
 func main() {
@@ -20,19 +25,292 @@ func main() {
 }
 
 func part1(name string) int {
-	total := 0
+	cavern := parseInput(name)
 
-	return total
+	allCollectedBitMask := 0
+	for i := range cavern.sulphurDeposits {
+		allCollectedBitMask |= 1 << (i + 1)
+	}
+
+	initialState := stateType{
+		lastNode:    cavern.start,
+		currentNode: cavern.start,
+	}
+
+	states := stateMap{initialState: 0}
+	statesToCheck := []stateType{initialState}
+
+	for {
+		nextState := stateType{}
+		min := math.MaxInt
+		nextStatesToCheck := []stateType{}
+
+		for _, state := range statesToCheck {
+			dist := states[state]
+			new := false
+			for _, edge := range state.currentNode.edges {
+				depositCollectedBitmap := state.depositsCollectedBitmask
+				if edge.to == state.lastNode {
+					continue
+				}
+				if edge.to.containsSulphur {
+					i := slices.Index(cavern.sulphurDeposits, edge.to)
+					if i == -1 {
+						panic("what?")
+					}
+					depositCollectedBitmap |= 1 << (i + 1)
+				}
+
+				testState := stateType{
+					depositsCollectedBitmask: depositCollectedBitmap,
+					lastNode:                 state.currentNode,
+					currentNode:              edge.to,
+				}
+
+				_, exists := states[testState]
+				if exists {
+					continue
+				}
+
+				new = true
+				newDist := dist + edge.weight
+				if newDist < min {
+					nextState = testState
+					min = newDist
+				}
+			}
+
+			if new {
+				nextStatesToCheck = append(nextStatesToCheck, state)
+			}
+		}
+
+		if min == math.MaxInt {
+			panic("no states added")
+		}
+
+		if nextState.depositsCollectedBitmask == allCollectedBitMask {
+			if nextState.currentNode == cavern.end {
+				return min
+			}
+
+		}
+
+		states[nextState] = min
+
+		statesToCheck = append(nextStatesToCheck, nextState)
+	}
 }
 
 func part2(name string) int {
-	total := 0
+	cavern := parseInput(name)
 
-	return total
+	initialState := stateTypeP2{
+		lastNode:    cavern.start,
+		currentNode: cavern.start,
+	}
+
+	states := map[stateTypeP2]int{initialState: 0}
+	statesToCheck := []stateTypeP2{initialState}
+
+	for {
+		nextState := stateTypeP2{}
+		min := math.MaxInt
+		nextStatesToCheck := []stateTypeP2{}
+
+		for _, state := range statesToCheck {
+			dist := states[state]
+			new := false
+			for _, edge := range state.currentNode.edges {
+				sulphurCollected := state.sulphurCollected
+				if edge.to == state.lastNode {
+					continue
+				}
+				if edge.to.containsSulphur {
+					sulphurCollected++
+				}
+
+				testState := stateTypeP2{
+					sulphurCollected: sulphurCollected,
+					lastNode:         state.currentNode,
+					currentNode:      edge.to,
+				}
+
+				_, exists := states[testState]
+				if exists {
+					continue
+				}
+
+				new = true
+				newDist := dist + edge.weight
+				if newDist < min {
+					nextState = testState
+					min = newDist
+				}
+			}
+
+			if new {
+				nextStatesToCheck = append(nextStatesToCheck, state)
+			}
+		}
+
+		if min == math.MaxInt {
+			panic("no states added")
+		}
+
+		if nextState.sulphurCollected >= 2026 {
+			if nextState.currentNode == cavern.end {
+				return min
+			}
+
+		}
+
+		states[nextState] = min
+
+		statesToCheck = append(nextStatesToCheck, nextState)
+
+	}
 }
+
+const sulphurToCollectP3 = 202620262026
 
 func part3(name string) int {
 	total := 0
 
 	return total
+}
+
+type cavernType struct {
+	start, end      *nodeType
+	sulphurDeposits []*nodeType
+}
+
+type nodeType struct {
+	edges           []edgeType
+	position        coords.Coord
+	containsSulphur bool
+}
+
+type edgeType struct {
+	to     *nodeType
+	weight int
+}
+
+type stateType struct {
+	depositsCollectedBitmask int
+	lastNode, currentNode    *nodeType
+}
+
+type stateTypeP2 struct {
+	lastNode, currentNode *nodeType
+	sulphurCollected      int
+}
+
+type stateMap map[stateType]int
+
+func parseInput(name string) cavernType {
+	grid := files.ReadLines(name)
+
+	start := &nodeType{}
+	allNodesFound := map[coords.Coord]*nodeType{}
+	sulphurDeposits := []*nodeType{}
+	end := &nodeType{}
+
+	for i, row := range grid {
+		for j, char := range row {
+			pos := coords.NewCoord(i, j)
+			node := &nodeType{}
+
+			if n, exists := allNodesFound[pos]; exists {
+				node = n
+			}
+
+			switch char {
+			case '#':
+				continue
+			case 'S':
+				start = node
+			case 'E':
+				end = node
+			case '@':
+				sulphurDeposits = append(sulphurDeposits, node)
+				node.containsSulphur = true
+			case '.':
+				paths := 0
+				for _, adj := range pos.GetAdjacent() {
+					if adj.InInput(grid) && grid[adj.I][adj.J] != '#' {
+						paths++
+					}
+				}
+
+				if paths <= 2 {
+					continue
+				}
+			}
+
+			node.position = pos
+
+			for _, adj := range pos.GetAdjacent() {
+				if adj.InInput(grid) && grid[adj.I][adj.J] != '#' {
+					endPos, weight := followPathToNode([]coords.Coord{pos, adj}, grid)
+					if n, exists := allNodesFound[endPos]; exists {
+						node.edges = append(node.edges, edgeType{
+							to:     n,
+							weight: weight,
+						})
+					} else {
+						endNode := &nodeType{}
+						allNodesFound[endPos] = endNode
+						node.edges = append(node.edges, edgeType{
+							to:     endNode,
+							weight: weight,
+						})
+					}
+				}
+			}
+
+			allNodesFound[pos] = node
+		}
+	}
+
+	return cavernType{
+		start:           start,
+		end:             end,
+		sulphurDeposits: sulphurDeposits,
+	}
+}
+
+func followPathToNode(path []coords.Coord, grid []string) (coords.Coord, int) {
+	last := path[len(path)-1]
+
+	next := coords.Coord{}
+	found := false
+
+	if grid[last.I][last.J] == 'S' || grid[last.I][last.J] == 'E' || grid[last.I][last.J] == '@' {
+		return last, 1
+	}
+
+	for _, adj := range last.GetAdjacent() {
+		if adj.InInput(grid) && !slices.Contains(path, adj) {
+			switch grid[adj.I][adj.J] {
+			case '#':
+				continue
+			default:
+				if found {
+					return last, 1
+				}
+
+				found = true
+				next = adj
+			}
+		}
+	}
+
+	if !found {
+		panic("lost!")
+	}
+
+	node, dist := followPathToNode(append(path, next), grid)
+
+	return node, dist + 1
 }
