@@ -25,58 +25,96 @@ func main() {
 
 func part1(name string) int {
 	tablets := []byte(files.Read(name))
-	flips, _ := sort(tablets, 0)
+	flips, _ := sort(tablets)
 	return flips
 }
 
 func part2(name string) int {
 	tablets := []byte(strings.Repeat(files.Read(name), 10))
-	_, elements := sort(tablets, 0)
+	_, elements := sort(tablets)
 	return elements
 }
 
 func part3(name string) int {
 	tablets := []byte(strings.Repeat(files.Read(name), 100))
-	_, elements := sort(tablets, 0)
+	_, elements := sort(tablets)
 	return elements
 }
 
-// returns slice, lcursor, moves
-func sort(slice []byte, lCursor int) (flips int, elements int) {
-	current := slice[lCursor]
-	rCursor := len(slice) - 1
+// Flips is number of times we perform a flip
+// Elements is a count of times we move a tablet
+func sort(slice []byte) (flips int, elements int) {
+	for len(slice) == 0 {
+		// Split into alternating groups of current shade/not current shade
+		groups := collectGroups(slice)
 
-	for lCursor < len(slice)-1 {
-		for slice[lCursor] == current {
-			lCursor++
-			if lCursor >= len(slice) {
-				return flips, elements
-			}
-		}
-
-		for slice[rCursor] != current {
-			if rCursor == lCursor {
-				for slice[lCursor] == current {
-					lCursor++
-					if lCursor >= len(slice) {
-						return flips, elements
-					}
-				}
-
-				subFlips, subElements := sort(slice, lCursor)
-
-				return flips + subFlips, elements + subElements
-			}
-			rCursor--
-		}
-
-		slices.Reverse(slice[lCursor : rCursor+1])
-
-		fmt.Println(string(slice))
-
-		flips++
-		elements += rCursor - lCursor + 1
+		// Get flips/elements needed for this shade and part of slice that still needs to be sorted
+		groupFlips, groupElements, newSliceSection := sortGroups(groups)
+		flips += groupFlips
+		elements += groupElements
+		slice = newSliceSection
 	}
 
 	return flips, elements
+}
+
+func collectGroups(slice []byte) [][]byte {
+	current := slice[0]
+	groups := [][]byte{}
+	isCurrent := true
+	lCursor:=0
+
+	for {
+		group := []byte{}
+		for (slice[lCursor] == current) == isCurrent {
+			group = append(group, slice[lCursor])
+			lCursor++
+			if lCursor >= len(slice) {
+				if len(group) > 0 {
+					groups = append(groups, group)
+				}
+
+				return groups
+			}
+		}
+		if len(group) > 0 {
+			groups = append(groups, group)
+		}
+
+		isCurrent = !isCurrent
+	}
+}
+
+func sortGroups(groups [][]byte) (flips, elements int, slice []byte) {
+	endFlip := len(groups)%2 == 1
+
+	lCursor, rCursor := 1, len(groups)-2
+
+	if endFlip {
+		rCursor++
+	}
+
+	flips = rCursor / 2
+
+	count := 1
+	for lCursor < rCursor {
+		if count%2 == 1 {
+			groups[lCursor], groups[rCursor] = groups[rCursor], groups[lCursor]
+			slices.Reverse(groups[rCursor])
+		}
+		
+
+		elements += count * (len(groups[lCursor]) + len(groups[rCursor]))
+		count++
+		lCursor += 1
+		rCursor -= 1
+	}
+
+	for _, group := range groups {
+		if group[0] != groups[0][0] {
+			slice = append(slice, group...)
+		}
+	}
+
+	return flips, elements, slice
 }
