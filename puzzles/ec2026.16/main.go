@@ -44,7 +44,7 @@ func part3(name string) int {
 // Flips is number of times we perform a flip
 // Elements is a count of times we move a tablet
 func sort(slice []byte) (flips int, elements int) {
-	for len(slice) == 0 {
+	for len(slice) != 0 {
 		// Split into alternating groups of current shade/not current shade
 		groups := collectGroups(slice)
 
@@ -102,18 +102,14 @@ func sortGroups(groups [][]byte) (flips, elements int, slice []byte) {
 			groups[lCursor], groups[rCursor] = groups[rCursor], groups[lCursor]
 			slices.Reverse(groups[rCursor])
 		}
-		
-
 		elements += count * (len(groups[lCursor]) + len(groups[rCursor]))
 		count++
 		lCursor += 1
 		rCursor -= 1
 	}
 
-	for _, group := range groups {
-		if group[0] != groups[0][0] {
-			slice = append(slice, group...)
-		}
+	for i:= lCursor; i<len(groups) ; i++ {
+		slice = append(slice, groups[i]...)
 	}
 
 	return flips, elements, slice
