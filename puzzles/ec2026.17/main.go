@@ -23,26 +23,26 @@ func main() {
 }
 
 func part1(name string) int {
-	grid:= files.ReadLines(name)
-	fill:= floodFill(grid, coords.NewCoord(0,0))
+	grid := files.ReadLines(name)
+	fill := floodFill(grid, coords.NewCoord(0, 0))
 
 	return fill[coords.NewCoord(len(grid)-1, len(grid[0])-1)]
 }
 
 func part2(name string) int {
-	grid:= files.ReadLines(name)
+	grid := files.ReadLines(name)
 
 	return getPerimeter(grid)
 }
 
 func part3(name string) int {
-	grid:= files.ReadLines(name)
+	grid := files.ReadLines(name)
 
-	perimeter:= getPerimeter(grid)
+	perimeter := getPerimeter(grid)
 
-	left:= followLeftEdge(grid)
+	left := followLeftEdge(grid)
 
-	right:= perimeter - left
+	right := perimeter - left
 
 	if left < right {
 		return left
@@ -51,19 +51,18 @@ func part3(name string) int {
 	return right
 }
 
-
 func floodFill(grid []string, start coords.Coord) map[coords.Coord]int {
-	dist:=0
-	queue:=map[coords.Coord]bool{start:true}
-	fill := map[coords.Coord]int{start:dist}
-	
+	dist := 0
+	queue := map[coords.Coord]bool{start: true}
+	fill := map[coords.Coord]int{start: dist}
+
 	for len(queue) > 0 {
-		dist ++
-		next:= make(map[coords.Coord]bool)
+		dist++
+		next := make(map[coords.Coord]bool)
 
 		for pos := range queue {
-			for _, adj:= range pos.GetAdjacent() {
-				if _,ok:= fill[adj]; ok {
+			for _, adj := range pos.GetAdjacent() {
+				if _, ok := fill[adj]; ok {
 					continue
 				}
 
@@ -81,13 +80,13 @@ func floodFill(grid []string, start coords.Coord) map[coords.Coord]int {
 }
 
 func getPerimeter(grid []string) int {
-	total:=0
-	for i, row:= range grid {
-		for j, char:= range row { 
+	total := 0
+	for i, row := range grid {
+		for j, char := range row {
 			if char == '#' {
-				for _, adj:= range coords.NewCoord(i,j).GetAdjacent() {
+				for _, adj := range coords.NewCoord(i, j).GetAdjacent() {
 					if !adj.InInput(grid) || grid[adj.I][adj.J] != '#' {
-						total ++
+						total++
 					}
 				}
 			}
@@ -97,9 +96,9 @@ func getPerimeter(grid []string) int {
 }
 
 func followLeftEdge(grid []string) int {
-	total:=0
-	pos:= coords.NewCoord(0,0)
-	direction:= coords.Down
+	total := 0
+	pos := coords.NewCoord(0, 0)
+	direction := coords.Down
 
 	for pos.I != len(grid) || pos.J != len(grid[0]) {
 		if validPath(pos, direction, grid) {
@@ -110,14 +109,14 @@ func followLeftEdge(grid []string) int {
 
 		direction = coords.TurnLeft(direction)
 		if validPath(pos, direction, grid) {
-			total ++
+			total++
 			pos = pos.Add(direction)
 			continue
 		}
 
 		direction = coords.TurnBack(direction)
 		if validPath(pos, direction, grid) {
-			total ++
+			total++
 			pos = pos.Add(direction)
 			continue
 		}
@@ -133,11 +132,11 @@ func validPath(pos, direction coords.Coord, grid []string) bool {
 	case coords.Down:
 		return isMagma(pos, grid) && !isMagma(pos.Left(1), grid)
 	case coords.Left:
-		return isMagma(pos.Left(1), grid) && !isMagma(pos.Add(coords.NewCoord(-1,-1)), grid)
+		return isMagma(pos.Left(1), grid) && !isMagma(pos.Add(coords.NewCoord(-1, -1)), grid)
 	case coords.Right:
 		return !isMagma(pos, grid) && isMagma(pos.Up(1), grid)
 	case coords.Up:
-		return !isMagma(pos.Up(1), grid) && isMagma(pos.Add(coords.NewCoord(-1,-1)), grid)
+		return !isMagma(pos.Up(1), grid) && isMagma(pos.Add(coords.NewCoord(-1, -1)), grid)
 	default:
 		panic("direction not found")
 	}

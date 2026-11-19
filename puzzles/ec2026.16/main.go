@@ -62,7 +62,7 @@ func collectGroups(slice []byte) [][]byte {
 	current := slice[0]
 	groups := [][]byte{}
 	isCurrent := true
-	lCursor:=0
+	lCursor := 0
 
 	for {
 		group := []byte{}
@@ -108,7 +108,7 @@ func sortGroups(groups [][]byte) (flips, elements int, slice []byte) {
 		rCursor -= 1
 	}
 
-	for i:= lCursor; i<len(groups) ; i++ {
+	for i := lCursor; i < len(groups); i++ {
 		slice = append(slice, groups[i]...)
 	}
 
