@@ -2,6 +2,11 @@ package main
 
 import (
 	"fmt"
+	"image"
+	"image/color"
+	"image/draw"
+	"image/png"
+	"os"
 	"time"
 
 	"github.com/PhilAldridge/aoc-2024-go/pkg/files"
@@ -50,6 +55,10 @@ func part1(name string) int {
 }
 
 func part2(name string) int {
+	stackPositions := parse(name)
+
+	renderImage(stackPositions, "test.png", 5000, 1000)
+
 	return part1(name)
 }
 
@@ -98,4 +107,67 @@ func getRect(l, r keyType, prevHeight int) (newHeight int, rect int) {
 	rect = (r.x - l.x + r.width) * (newHeight - prevHeight)
 
 	return newHeight, rect
+}
+
+func renderImage(walls []keyType, filename string, imgW, imgH int) error {
+	n := len(walls)
+	maxX := walls[n-1].x + walls[n-1].width
+
+	prefixMax := make([]int, n)
+	suffixMax := make([]int, n)
+	for i := range n {
+		prefixMax[i] = walls[i].y
+		if i > 0 {
+			prefixMax[i] = max(prefixMax[i], prefixMax[i-1])
+		}
+	}
+	for i := n - 1; i >= 0; i-- {
+		suffixMax[i] = walls[i].y
+		if i < n-1 {
+			suffixMax[i] = max(suffixMax[i], suffixMax[i+1])
+		}
+	}
+	maxY := prefixMax[n-1]
+
+	// Separate scales so the image is filled; use one scale for true proportions.
+	sx := float64(imgW) / float64(maxX)
+	sy := float64(imgH) / float64(maxY)
+
+	img := image.NewRGBA(image.Rect(0, 0, imgW, imgH))
+	draw.Draw(img, img.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
+
+	fill := func(x0, x1, y0, y1 int, c color.Color) {
+		px0 := int(float64(x0) * sx)
+		px1 := max(px0+1, int(float64(x1)*sx+0.999)) // at least 1px wide
+		py1 := imgH - int(float64(y0)*sy)            // flip: y=0 at the bottom
+		py0 := imgH - int(float64(y1)*sy+0.999)
+		if py0 >= py1 {
+			return
+		}
+		r := image.Rect(px0, py0, px1, py1).Intersect(img.Bounds())
+		draw.Draw(img, r, &image.Uniform{c}, image.Point{}, draw.Src)
+	}
+
+	blue := color.RGBA{40, 110, 220, 255}
+	green := color.RGBA{30, 160, 60, 255}
+
+	// Water first, so walls are drawn on top.
+	for i, w := range walls {
+		level := min(prefixMax[i], suffixMax[i])
+		fill(w.x, w.x+w.width, w.y, level, blue) // water sitting on top of a wall
+		if i+1 < n {
+			gapLevel := min(prefixMax[i], suffixMax[i+1])
+			fill(w.x+w.width, walls[i+1].x, 0, gapLevel, blue) // water between walls
+		}
+	}
+	for _, w := range walls {
+		fill(w.x, w.x+w.width, 0, w.y, green)
+	}
+
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return png.Encode(f, img)
 }
