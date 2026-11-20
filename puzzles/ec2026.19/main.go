@@ -72,40 +72,48 @@ func part3(name string) int {
 		}
 	}
 
-	max:=0
+	max := 0
 
-	allColours:= []colour{black, cyan,magenta,yellow,blue,green,red}
-	primary:= []colour{black, cyan,magenta,yellow}
-
-	// f returns how many cells can become at least one colour in set.
-	f := func(set ...colour) int {
-		total := 0
-		for _, s := range primary {
-			for _, t := range set {
-				if slices.Contains(potentialMapping[s], t) {
-					total += counts[s]
-					break
-				}
-			}
-		}
-		return total
-	}
-
+	// Loop through all 35 combinations of 3 colours, maximizing the product of their counts
 	for a := 0; a < len(allColours); a++ {
 		for b := a + 1; b < len(allColours); b++ {
 			for c := b + 1; c < len(allColours); c++ {
-				colour1, colour2, colour3:= allColours[a], allColours[b], allColours[c]
-				maxCells:= f(colour1,colour2,colour3)
-				max1, max2, max3:= f(colour1), f(colour2), f(colour3)
-				max12, max13, max23:= f(colour1,colour2), f(colour1,colour3), f(colour2,colour3)
+				colour1, colour2, colour3 := allColours[a], allColours[b], allColours[c]
 
-				for colour1Count:= ints.Max([]int{0, maxCells - max23}); colour1Count <= max1; colour1Count++ {
-					colour2Min := ints.Max([]int{0, maxCells-colour1Count-max3, maxCells - max13})
-					colour2Max:= ints.Min([]int{max2, max12-colour1Count})
+				// Max cells that can end up as any of the 3 colours
+				maxColours123 := maxCellsInColourSet(counts, colour1, colour2, colour3)
 
-					for colour2Count := colour2Min; colour2Count<=colour2Max; colour2Count ++ {
-						colour3Count:= maxCells - colour1Count - colour2Count
-						res:= colour1Count * colour2Count * colour3Count
+				// Max cells that can end up as one of the 3 colours
+				maxColour1, maxColour2, maxColour3 :=
+					maxCellsInColourSet(counts, colour1),
+					maxCellsInColourSet(counts, colour2),
+					maxCellsInColourSet(counts, colour3)
+
+				// Max cells that can end up as one of two of the 3 colours
+				maxColours12, maxColours13, maxColours23 :=
+					maxCellsInColourSet(counts, colour1, colour2),
+					maxCellsInColourSet(counts, colour1, colour3),
+					maxCellsInColourSet(counts, colour2, colour3)
+
+				// Colour1Count must be >=0 and >= remaining max123 when maximizing 23
+				for colour1Count := ints.Max([]int{0, maxColours123 - maxColours23}); colour1Count <= maxColour1; colour1Count++ {
+
+					// Colour2Count must be >=0 and >= remaining max123 when accounting for colours 1 and 3
+					colour2Min := ints.Max([]int{0, maxColours123 - colour1Count - maxColour3, maxColours123 - maxColours13})
+
+					// Colour2Count cannot be > max12 - colour1Count
+					colour2Max := ints.Min([]int{maxColour2, maxColours12 - colour1Count})
+
+					// Could loop through all ints between min and max. However maximum product occurs when colour2Count and colour3Count are as equal as they can be
+					// This means either: amount left from total max colours - colour1Count shared between colours 2 and 3
+					// Or: colour2Min if sharing equally is not possible because it is below the min
+					// Or: colour2Max if sharing equally is not possible because it is above the max
+					for _, colour2Count := range []int{colour2Min, colour2Max, (maxColours123 - colour1Count) / 2, (maxColours123 - colour1Count + 1) / 2} {
+						if colour2Count < colour2Min || colour2Count > colour2Max {
+							continue
+						}
+						colour3Count := maxColours123 - colour1Count - colour2Count
+						res := colour1Count * colour2Count * colour3Count
 						if res > max {
 							max = res
 						}
@@ -137,7 +145,23 @@ var (
 		magenta: []colour{magenta, blue, red},
 		yellow:  []colour{yellow, green, red},
 	}
+	allColours = []colour{black, cyan, magenta, yellow, blue, green, red}
+	primary    = []colour{black, cyan, magenta, yellow}
 )
+
+// maxCellsInColourSet returns how many cells can become at least one colour in set.
+func maxCellsInColourSet(counts map[colour]int, set ...colour) int {
+	total := 0
+	for _, s := range primary {
+		for _, t := range set {
+			if slices.Contains(potentialMapping[s], t) {
+				total += counts[s]
+				break
+			}
+		}
+	}
+	return total
+}
 
 func aToColour(a byte) colour {
 	switch a {
