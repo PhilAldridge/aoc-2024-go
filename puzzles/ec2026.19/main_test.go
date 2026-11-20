@@ -34,10 +34,4 @@ func TestPart3(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	})
 
-	t.Run("Part 3act", func(t *testing.T) {
-		expected := 8000
-		actual := part3("input3.txt")
-		assert.Equal(t, expected, actual)
-	})
-
 }

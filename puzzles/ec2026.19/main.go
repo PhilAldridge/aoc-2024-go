@@ -74,37 +74,45 @@ func part3(name string) int {
 
 	max:=0
 
-	for i := range counts[cyan] + 1 {
-		for i2 := 0; i2+i <= counts[cyan]; i2++ {
-			i3:= counts[cyan]-i-i2
-			for j := range counts[magenta] + 1 {
-				for j2 := j; j2+j <= counts[magenta]; j2++ {
-					j3:= counts[magenta] - j-j2
-					for k := range counts[yellow] + 1 {
-						for k2:=0; k2+k<=counts[yellow]; k2++ {
-							k3:= counts[yellow] - k - k2
-							finalMapping:= map[colour]int{
-								black: counts[black],
-								cyan: i,
-								magenta: j,
-								yellow: k,
-								blue: i2 + j2,
-								green: i3 + k2,
-								red: j3 + k3,
-							}
+	allColours:= []colour{black, cyan,magenta,yellow,blue,green,red}
+	primary:= []colour{black, cyan,magenta,yellow}
 
-							res:= countWhiteCrystals(finalMapping)
+	// f returns how many cells can become at least one colour in set.
+	f := func(set ...colour) int {
+		total := 0
+		for _, s := range primary {
+			for _, t := range set {
+				if slices.Contains(potentialMapping[s], t) {
+					total += counts[s]
+					break
+				}
+			}
+		}
+		return total
+	}
 
-							if res> max {
-								max = res
-							}
+	for a := 0; a < len(allColours); a++ {
+		for b := a + 1; b < len(allColours); b++ {
+			for c := b + 1; c < len(allColours); c++ {
+				colour1, colour2, colour3:= allColours[a], allColours[b], allColours[c]
+				maxCells:= f(colour1,colour2,colour3)
+				max1, max2, max3:= f(colour1), f(colour2), f(colour3)
+				max12, max13, max23:= f(colour1,colour2), f(colour1,colour3), f(colour2,colour3)
+
+				for colour1Count:= ints.Max([]int{0, maxCells - max23}); colour1Count <= max1; colour1Count++ {
+					colour2Min := ints.Max([]int{0, maxCells-colour1Count-max3, maxCells - max13})
+					colour2Max:= ints.Min([]int{max2, max12-colour1Count})
+
+					for colour2Count := colour2Min; colour2Count<=colour2Max; colour2Count ++ {
+						colour3Count:= maxCells - colour1Count - colour2Count
+						res:= colour1Count * colour2Count * colour3Count
+						if res > max {
+							max = res
 						}
 					}
 				}
-
 			}
 		}
-
 	}
 
 	return max
